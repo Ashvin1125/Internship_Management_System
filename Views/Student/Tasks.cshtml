@@ -1,0 +1,80 @@
+@model IEnumerable<InternshipManagementSystem.Models.InternshipTask>
+
+@{
+    ViewData["Title"] = "My Tasks";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Assigned Tasks</h2>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Assigned By</th>
+                        <th>Deadline</th>
+                        <th>Status</th>
+                        <th>Update Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var task in Model ?? Enumerable.Empty<InternshipManagementSystem.Models.InternshipTask>())
+                    {
+                        <tr>
+                            <td class="fw-bold">@task.Title</td>
+                            <td>@(task.Description?.Length > 40 ? task.Description.Substring(0, 40) + "..." : task.Description ?? "—")</td>
+                            <td>@task.Guide?.User?.Name</td>
+                            <td>
+                                @if (task.Deadline < DateTime.Now.Date && task.Status != "Completed")
+                                {
+                                    <span class="text-danger fw-bold"><i class="bi bi-exclamation-circle me-1"></i>@task.Deadline.ToShortDateString()</span>
+                                }
+                                else
+                                {
+                                    @task.Deadline.ToShortDateString()
+                                }
+                            </td>
+                            <td>
+                                @if (task.Status == "Assigned") { <span class="badge bg-secondary">Assigned</span> }
+                                else if (task.Status == "InProgress") { <span class="badge bg-primary">In Progress</span> }
+                                else { <span class="badge bg-success">Completed</span> }
+                            </td>
+                            <td>
+                                @if (task.Status != "Completed")
+                                {
+                                    <form asp-action="UpdateTaskStatus" method="post" class="d-flex gap-1">
+                                        <input type="hidden" name="taskId" value="@task.TaskId" />
+                                        @if (task.Status == "Assigned")
+                                        {
+                                            <button type="submit" name="status" value="InProgress" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-play-circle me-1"></i>Start
+                                            </button>
+                                        }
+                                        <button type="submit" name="status" value="Completed" class="btn btn-sm btn-success">
+                                            <i class="bi bi-check-circle me-1"></i>Done
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="text-success"><i class="bi bi-check-circle-fill"></i> Completed</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (Model == null || !Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">No tasks assigned yet.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,83 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    var assignments = ViewBag.Assignments as List<InternshipManagementSystem.Models.GuideAssignment>;
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div><h6>Total Students</h6><h2 class="mb-0">@ViewBag.TotalStudents</h2></div>
+                <i class="bi bi-people-fill fs-1 text-white-50"></i>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <a class="small text-white stretched-link" asp-action="Students">View All</a>
+                <i class="bi bi-arrow-right text-white"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div><h6>Total Guides</h6><h2 class="mb-0">@ViewBag.TotalGuides</h2></div>
+                <i class="bi bi-person-badge fs-1 text-white-50"></i>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <a class="small text-white stretched-link" asp-action="Guides">View All</a>
+                <i class="bi bi-arrow-right text-white"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div><h6>Assignments</h6><h2 class="mb-0">@ViewBag.TotalAssignments</h2></div>
+                <i class="bi bi-link-45deg fs-1 text-white-50"></i>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <a class="small text-white stretched-link" asp-action="AssignGuide">Assign More</a>
+                <i class="bi bi-arrow-right text-white"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div><h6>Unassigned Students</h6><h2 class="mb-0">@ViewBag.Unassigned</h2></div>
+                <i class="bi bi-person-x fs-1 opacity-50"></i>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <a class="small text-dark stretched-link" asp-action="AssignGuide">Assign Now</a>
+                <i class="bi bi-arrow-right"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-white fw-semibold"><i class="bi bi-link me-2"></i>Guide Assignments</div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr><th>Student</th><th>Guide</th><th>Department</th></tr>
+            </thead>
+            <tbody>
+                @if (assignments != null && assignments.Any())
+                {
+                    foreach (var a in assignments)
+                    {
+                        <tr>
+                            <td>@a.Student?.User?.Name <small class="text-muted">(@a.Student?.EnrollmentNumber)</small></td>
+                            <td>@a.Guide?.User?.Name</td>
+                            <td>@a.Guide?.Department</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="3" class="text-center py-3 text-muted">No assignments yet.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

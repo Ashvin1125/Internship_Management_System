@@ -1,0 +1,40 @@
+@model IEnumerable<InternshipManagementSystem.Models.Guide>
+
+@{
+    ViewData["Title"] = "Manage Guides";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Guides List</h2>
+    <a asp-action="CreateGuide" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i> Register Guide</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Designation</th>
+                    <th>Department</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model ?? Enumerable.Empty<InternshipManagementSystem.Models.Guide>())
+                {
+                    <tr>
+                        <td>@item.User?.Name</td>
+                        <td>@item.User?.Email</td>
+                        <td>@item.Designation</td>
+                        <td>@item.Department</td>
+                    </tr>
+                }
+                @if (Model == null || !Model.Any())
+                {
+                    <tr><td colspan="4" class="text-center py-4">No guides found.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

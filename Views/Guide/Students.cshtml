@@ -1,0 +1,40 @@
+@model IEnumerable<InternshipManagementSystem.Models.GuideAssignment>
+@{
+    ViewData["Title"] = "Assigned Students";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>My Assigned Students</h2>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Enrollment No</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Semester</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model ?? Enumerable.Empty<InternshipManagementSystem.Models.GuideAssignment>())
+                {
+                    <tr>
+                        <td>@item.Student?.EnrollmentNumber</td>
+                        <td>@item.Student?.User?.Name</td>
+                        <td>@item.Student?.User?.Email</td>
+                        <td>@item.Student?.Semester</td>
+                    </tr>
+                }
+                @if (Model == null || !Model.Any())
+                {
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">No students assigned to you yet.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

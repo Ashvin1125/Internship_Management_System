@@ -1,0 +1,61 @@
+@model InternshipManagementSystem.Models.InternshipDetails
+
+@{
+    ViewData["Title"] = "My Internship";
+}
+
+@if (Model == null)
+{
+    <div class="alert alert-warning d-flex align-items-center gap-3">
+        <i class="bi bi-exclamation-triangle-fill fs-3"></i>
+        <div>
+            <strong>No internship details added yet.</strong><br />
+            Please add your internship information to get started.
+        </div>
+    </div>
+    <a asp-action="AddInternship" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i> Add Internship Details</a>
+}
+else
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-building me-2"></i>Internship at @Model.CompanyName</h5>
+            <span class="badge bg-success fs-6">Active</span>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <small class="text-muted d-block">Company</small>
+                    <strong>@Model.CompanyName</strong>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted d-block">Role / Position</small>
+                    <strong>@Model.Role</strong>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted d-block">Technology Used</small>
+                    <strong>@(Model.TechnologyUsed ?? "—")</strong>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted d-block">Start Date</small>
+                    <strong>@Model.StartDate.ToShortDateString()</strong>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted d-block">End Date</small>
+                    <strong>@Model.EndDate.ToShortDateString()</strong>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted d-block">Duration</small>
+                    <strong>@((Model.EndDate - Model.StartDate).Days) days</strong>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="col-12">
+                        <small class="text-muted d-block">Description</small>
+                        <p>@Model.Description</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}

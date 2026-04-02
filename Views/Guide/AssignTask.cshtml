@@ -1,0 +1,63 @@
+@model InternshipManagementSystem.ViewModels.AssignTaskViewModel
+
+@{
+    ViewData["Title"] = "Assign Task";
+    var students = ViewBag.Students as List<InternshipManagementSystem.Models.Student>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Assign Task to Student</h2>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form asp-action="AssignTask" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="StudentId" class="form-label">Select Student</label>
+                <select asp-for="StudentId" class="form-select" required>
+                    <option value="">-- Choose Student --</option>
+                    @if (students != null)
+                    {
+                        foreach (var s in students)
+                        {
+                            <option value="@s.StudentId">@s.User?.Name (@s.EnrollmentNumber)</option>
+                        }
+                    }
+                </select>
+                <span asp-validation-for="StudentId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label">Task Title</label>
+                <input asp-for="Title" class="form-control" placeholder="e.g. Create a REST API module" required />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label">Description <small class="text-muted">(optional)</small></label>
+                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Detailed task instructions..."></textarea>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Deadline" class="form-label">Deadline</label>
+                <input asp-for="Deadline" type="date" class="form-control" required />
+                <span asp-validation-for="Deadline" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i> Assign Task</button>
+            </div>
+
+            @if (students == null || !students.Any())
+            {
+                <div class="alert alert-warning mt-3">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    No students are assigned to you yet. Please contact the Admin.
+                </div>
+            }
+        </form>
+    </div>
+</div>

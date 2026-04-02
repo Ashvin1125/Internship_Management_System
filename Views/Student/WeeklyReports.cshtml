@@ -1,0 +1,44 @@
+@model IEnumerable<InternshipManagementSystem.Models.WeeklyReport>
+
+@{
+    ViewData["Title"] = "Weekly Reports";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Weekly Reports</h2>
+    <a asp-action="SubmitReport" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i> Submit Report</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Week #</th>
+                    <th>Summary</th>
+                    <th>Status</th>
+                    <th>Guide Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model ?? Enumerable.Empty<InternshipManagementSystem.Models.WeeklyReport>())
+                {
+                    <tr>
+                        <td><span class="badge bg-secondary">Week @r.WeekNumber</span></td>
+                        <td>@(r.Summary.Length > 60 ? r.Summary.Substring(0, 60) + "..." : r.Summary)</td>
+                        <td>
+                            @if (r.Status == "Pending") { <span class="badge bg-warning text-dark">Pending</span> }
+                            else if (r.Status == "Approved") { <span class="badge bg-success">Approved</span> }
+                            else { <span class="badge bg-danger">Rejected</span> }
+                        </td>
+                        <td>@(r.GuideComment ?? "—")</td>
+                    </tr>
+                }
+                @if (Model == null || !Model.Any())
+                {
+                    <tr><td colspan="4" class="text-center py-4 text-muted">No weekly reports submitted yet.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

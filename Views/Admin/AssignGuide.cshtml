@@ -1,0 +1,56 @@
+@{
+    ViewData["Title"] = "Assign Guide to Student";
+    var guides = ViewBag.Guides as List<InternshipManagementSystem.Models.Guide>;
+    var students = ViewBag.Students as List<InternshipManagementSystem.Models.Student>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Assign Guide</h2>
+</div>
+
+<div class="card shadow-sm max-w-md">
+    <div class="card-body">
+        <form asp-action="AssignGuide" method="post">
+            
+            <div class="mb-4">
+                <label for="guideId" class="form-label">Select Guide</label>
+                <select name="guideId" id="guideId" class="form-select" required>
+                    <option value="">-- Choose a Guide --</option>
+                    @if (guides != null)
+                    {
+                        foreach (var guide in guides)
+                        {
+                            <option value="@guide.GuideId">@guide.User?.Name (@guide.Department - @guide.Designation)</option>
+                        }
+                    }
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label for="studentId" class="form-label">Select Unassigned Student</label>
+                <select name="studentId" id="studentId" class="form-select" required>
+                    <option value="">-- Choose a Student --</option>
+                    @if (students != null)
+                    {
+                        foreach (var student in students)
+                        {
+                            <option value="@student.StudentId">@student.User?.Name (Enrollment: @student.EnrollmentNumber)</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Assign Student</button>
+            </div>
+            
+            @if(students != null && !students.Any())
+            {
+                <div class="alert alert-info mt-3">
+                    There are no unassigned students available.
+                </div>
+            }
+        </form>
+    </div>
+</div>

@@ -1,0 +1,27 @@
+@model InternshipManagementSystem.Models.WeeklyReport
+
+@{
+    ViewData["Title"] = "Submit Weekly Report";
+}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form asp-action="SubmitReport" method="post">
+            <div class="mb-3">
+                <label asp-for="WeekNumber" class="form-label">Week Number</label>
+                <input asp-for="WeekNumber" type="number" min="1" max="52" class="form-control" required />
+                <span asp-validation-for="WeekNumber" class="text-danger"></span>
+            </div>
+            <div class="mb-4">
+                <label asp-for="Summary" class="form-label">Weekly Summary</label>
+                <textarea asp-for="Summary" class="form-control" rows="6"
+                    placeholder="Describe what you worked on this week, key learnings, challenges..." required></textarea>
+                <span asp-validation-for="Summary" class="text-danger"></span>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+                <a asp-action="WeeklyReports" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i> Submit Report</button>
+            </div>
+        </form>
+    </div>
+</div>

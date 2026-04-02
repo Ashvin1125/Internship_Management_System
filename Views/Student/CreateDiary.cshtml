@@ -1,0 +1,27 @@
+@model InternshipManagementSystem.Models.DailyDiary
+
+@{
+    ViewData["Title"] = "Add Diary Entry";
+}
+
+<div class="card shadow-sm max-w-md">
+    <div class="card-header bg-white">
+        <h4 class="mb-0">New Diary Entry</h4>
+    </div>
+    <div class="card-body">
+        <form asp-action="CreateDiary" method="post">
+            <div class="mb-3">
+                <label asp-for="WorkDate" class="form-label text-muted">Work Date</label>
+                <input asp-for="WorkDate" type="date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+            </div>
+            <div class="mb-4">
+                <label asp-for="WorkDescription" class="form-label text-muted">What did you work on today?</label>
+                <textarea asp-for="WorkDescription" class="form-control" rows="5" required></textarea>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+                <a asp-action="Diary" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Submit for Review</button>
+            </div>
+        </form>
+    </div>
+</div>
