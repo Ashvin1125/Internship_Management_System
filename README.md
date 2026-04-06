@@ -104,7 +104,7 @@ F5 in Visual Studio
 * Internship Management
 * Student Records
 * Dashboard
-* Reports (Optional)
+* Guide Dashboard 
 * Admin Panel
 
 ---
