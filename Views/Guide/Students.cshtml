@@ -1,0 +1,66 @@
+@model IEnumerable<InternshipManagementSystem.Models.GuideAssignment>
+@{
+    ViewData["Title"] = "Assigned Students";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>My Assigned Students</h2>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Enrollment</th>
+                        <th>Student Name & Email</th>
+                        <th>Semester</th>
+                        <th class="text-end px-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-primary">@item.Student?.EnrollmentNumber</td>
+                                <td>
+                                    <div class="fw-bold">@item.Student?.User?.Name</div>
+                                    <small class="text-muted">@item.Student?.User?.Email</small>
+                                </td>
+                                <td><span class="badge bg-info bg-opacity-10 text-info">Sem @item.Student?.Semester</span></td>
+                                <td class="text-end px-4">
+                                    <div class="btn-group shadow-sm">
+                                        <a asp-action="StudentDetails" asp-route-id="@item.StudentId" class="btn btn-sm btn-outline-primary" title="View Profile">
+                                            <i class="bi bi-eye"></i> Profile
+                                        </a>
+                                        <a asp-action="StudentDocuments" asp-route-studentId="@item.StudentId" class="btn btn-sm btn-outline-dark" title="View Documents">
+                                            <i class="bi bi-folder2"></i> Docs
+                                        </a>
+                                        <a asp-action="AssignTask" asp-route-studentId="@item.StudentId" class="btn btn-sm btn-outline-info" title="Assign Task">
+                                            <i class="bi bi-plus-circle"></i> Task
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty-state">
+                                    <i class="bi bi-people"></i>
+                                    <h5>No Students Assigned</h5>
+                                    <p>You haven't been assigned any students yet. Contact the Admin for assignments.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

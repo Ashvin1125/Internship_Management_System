@@ -1,0 +1,83 @@
+@model IEnumerable<InternshipManagementSystem.Models.DailyDiary>
+
+@{
+    ViewData["Title"] = "Student Diaries";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Student Diaries for Review</h2>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Student Information</th>
+                        <th>Work Description</th>
+                        <th>Status</th>
+                        <th style="min-width:320px" class="px-3">Moderation / Feedback</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><span class="badge bg-light text-dark border"><i class="bi bi-calendar-event me-1"></i> @item.WorkDate.ToString("dd MMM yyyy")</span></td>
+                                <td>
+                                    <div class="fw-bold">@item.Student?.User?.Name</div>
+                                    <small class="text-muted">Enroll: @item.Student?.EnrollmentNumber</small>
+                                </td>
+                                <td class="small">@(item.WorkDescription?.Length > 60 ? item.WorkDescription.Substring(0, 60) + "..." : item.WorkDescription)</td>
+                                <td>
+                                    @if (item.Status == "Pending") { <span class="status-badge status-pending">Pending</span> }
+                                    else if (item.Status == "Approved") { <span class="status-badge status-approved">Approved</span> }
+                                    else { <span class="status-badge status-rejected">Rejected</span> }
+                                </td>
+                                <td class="px-3 py-3">
+                                    @if (item.Status == "Pending")
+                                    {
+                                        <form asp-action="ApproveDiary" method="post" data-ajax="true">
+                                            <input type="hidden" name="diaryId" value="@item.DiaryId" />
+                                            <input type="text" name="comment" class="form-control form-control-sm border-0 bg-light" placeholder="Feedback msg..." style="border-radius: 8px;" />
+                                            <div class="btn-group shadow-sm">
+                                                <button type="submit" name="action" value="Approve" class="btn btn-sm btn-success" title="Approve Entry">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                                <button type="submit" name="action" value="Reject" class="btn btn-sm btn-danger" title="Reject Entry">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </div>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <div class="p-2 bg-light rounded-3 small text-muted border-start border-3 @(item.Status == "Approved" ? "border-success" : "border-danger")">
+                                            <i class="bi bi-chat-right-dots me-2"></i> @(string.IsNullOrWhiteSpace(item.GuideComment) ? "No comment provided." : item.GuideComment)
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <i class="bi bi-journal-text text-muted"></i>
+                                    <h5>No Diaries Submitted</h5>
+                                    <p class="mb-0">Your assigned students haven't submitted any diary entries yet.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

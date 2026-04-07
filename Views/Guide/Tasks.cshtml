@@ -1,0 +1,63 @@
+@model IEnumerable<InternshipManagementSystem.Models.InternshipTask>
+
+@{
+    ViewData["Title"] = "Assigned Tasks";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Tasks Assigned by Me</h2>
+    <a asp-action="AssignTask" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i> Assign New Task</a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Task Information</th>
+                        <th>Student</th>
+                        <th>Deadline</th>
+                        <th>Status</th>
+                        <th class="px-3">Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var task in Model)
+                        {
+                            <tr>
+                                <td><span class="fw-bold text-dark">@task.Title</span></td>
+                                <td>
+                                    <div class="fw-bold">@task.Student?.User?.Name</div>
+                                    <small class="text-muted">Enroll: @task.Student?.EnrollmentNumber</small>
+                                </td>
+                                <td><span class="badge bg-light text-dark border"><i class="bi bi-calendar-event me-1"></i> @task.Deadline.ToString("dd MMM yyyy")</span></td>
+                                <td>
+                                    @if (task.Status == "Assigned") { <span class="status-badge status-info">Assigned</span> }
+                                    else if (task.Status == "InProgress") { <span class="status-badge status-pending">In Progress</span> }
+                                    else if (task.Status == "Completed") { <span class="status-badge status-approved">Completed</span> }
+                                    else { <span class="status-badge bg-light text-dark">@task.Status</span> }
+                                </td>
+                                <td class="px-3"><small class="text-muted">@(task.Description?.Length > 40 ? task.Description.Substring(0, 40) + "..." : task.Description ?? "—")</small></td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <i class="bi bi-list-task text-muted"></i>
+                                    <h5>No Tasks Assigned</h5>
+                                    <p class="mb-0">You haven't assigned any tasks to your students yet.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

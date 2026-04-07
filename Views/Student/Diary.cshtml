@@ -1,0 +1,72 @@
+@model IEnumerable<InternshipManagementSystem.Models.DailyDiary>
+
+@{
+    ViewData["Title"] = "Daily Diaries";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>My Daily Diaries</h2>
+    <a asp-action="CreateDiary" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i> Add New Entry</a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Work Date</th>
+                        <th>Work Description</th>
+                        <th>Status</th>
+                        <th class="px-3">Guide Feedback</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><span class="badge bg-light text-dark border"><i class="bi bi-calendar-event me-1"></i> @item.WorkDate.ToString("dd MMM yyyy")</span></td>
+                                <td class="small">@(item.WorkDescription.Length > 80 ? item.WorkDescription.Substring(0, 80) + "..." : item.WorkDescription)</td>
+                                <td>
+                                    @if(item.Status == "Pending") { <span class="status-badge status-pending">Pending</span> }
+                                    else if(item.Status == "Approved") { <span class="status-badge status-approved">Approved</span> }
+                                    else { <span class="status-badge status-rejected">Rejected</span> }
+                                </td>
+                                <td class="px-3">
+                                    @if (!string.IsNullOrEmpty(item.GuideComment))
+                                    {
+                                        <div class="p-2 bg-light rounded shadow-none small text-muted border-start border-3 @(item.Status == "Approved" ? "border-success" : "border-danger")">
+                                            @item.GuideComment
+                                        </div>
+                                    }
+                                    else if (item.Status == "Pending")
+                                    {
+                                        <span class="text-muted small italic">Waiting for review...</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">No comment.</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty-state">
+                                    <i class="bi bi-journal-plus text-primary"></i>
+                                    <h5>No Diary Entries Yet</h5>
+                                    <p class="mb-0">Start recording your daily progress by clicking 'Add New Entry'.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

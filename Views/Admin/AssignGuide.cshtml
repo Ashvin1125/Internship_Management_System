@@ -1,0 +1,87 @@
+@{
+    ViewData["Title"] = "Assign Guide to Student";
+    var guides = ViewBag.Guides as List<InternshipManagementSystem.Models.Guide>;
+    var students = ViewBag.Students as List<InternshipManagementSystem.Models.Student>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Assign Guide</h2>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card form-card">
+            <div class="card-header bg-white py-3 border-bottom-0">
+                <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-link-45deg me-2"></i>Guide Assignment</h5>
+                <p class="text-muted small mb-0">Link an unassigned student to a faculty guide for supervision.</p>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="AssignGuide" method="post" data-ajax="true">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="mb-4">
+                        <label for="guideId" class="form-label small fw-bold text-muted text-uppercase mb-1">Select Supervisor (Guide)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="bi bi-person-badge text-muted"></i></span>
+                            <select name="guideId" id="guideId" class="form-select border-0 bg-light py-2" required>
+                                <option value="">-- Choose a Guide --</option>
+                                @if (guides != null)
+                                {
+                                    foreach (var guide in guides)
+                                    {
+                                        <option value="@guide.GuideId">@guide.User?.Name (@guide.Department - @guide.Designation)</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="studentId" class="form-label small fw-bold text-muted text-uppercase mb-1">Pick Unassigned Student</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="bi bi-people text-muted"></i></span>
+                            <select name="studentId" id="studentId" class="form-select border-0 bg-light py-2" required @(students == null || !students.Any() ? "disabled" : "")>
+                                <option value="">-- Choose a Student --</option>
+                                @if (students != null)
+                                {
+                                    foreach (var student in students)
+                                    {
+                                        <option value="@student.StudentId">@student.User?.Name (Enroll: @student.EnrollmentNumber)</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        @if (students != null && !students.Any())
+                        {
+                            <div class="alert alert-warning py-2 small mt-3 mb-0">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i> No unassigned students available at the moment.
+                            </div>
+                        }
+                    </div>
+
+                    <div class="mt-5 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-bold shadow-sm" @(students == null || !students.Any() ? "disabled" : "")>
+                            <i class="bi bi-check-circle-fill me-2"></i>Assign Student
+                        </button>
+                        <a asp-action="Index" class="btn btn-light px-4 py-2 fw-bold text-muted border">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card border-0 bg-light p-4 rounded-4 mt-lg-0 mt-4">
+            <h6 class="fw-bold"><i class="bi bi-info-circle-fill text-primary me-2"></i>How it works</h6>
+            <p class="small text-muted mb-0">Student-Guide assignment is the core of the monitoring system. Once assigned:</p>
+            <hr class="my-3 opacity-10">
+            <ul class="small p-0 m-0 text-muted list-unstyled">
+                <li class="mb-2"><i class="bi bi-dot text-primary fs-4 align-middle"></i> Guide can review student diaries.</li>
+                <li class="mb-2"><i class="bi bi-dot text-primary fs-4 align-middle"></i> Guide can assign tasks to the student.</li>
+                <li><i class="bi bi-dot text-primary fs-4 align-middle"></i> Student can view their guide's profile.</li>
+            </ul>
+        </div>
+    </div>
+</div>

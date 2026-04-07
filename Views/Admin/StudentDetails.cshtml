@@ -1,0 +1,118 @@
+@model InternshipManagementSystem.Models.Student
+
+@{
+    ViewData["Title"] = "Student Details";
+    var internship = ViewBag.Internship as InternshipManagementSystem.Models.InternshipDetails;
+    var assignment = ViewBag.Assignment as InternshipManagementSystem.Models.GuideAssignment;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Student Profile: @Model.User.Name</h2>
+    <a asp-action="Students" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i> Back to List</a>
+</div>
+
+<div class="row">
+    <!-- Left Column: Basic Info -->
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-circle me-2"></i>Personal Info</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Enrollment</dt>
+                    <dd class="col-sm-7">@Model.EnrollmentNumber</dd>
+                    
+                    <dt class="col-sm-5">Email</dt>
+                    <dd class="col-sm-7">@Model.User.Email</dd>
+                    
+                    <dt class="col-sm-5">Department</dt>
+                    <dd class="col-sm-7 text-truncate">@Model.Department</dd>
+                    
+                    <dt class="col-sm-5">Semester</dt>
+                    <dd class="col-sm-7">@Model.Semester</dd>
+                    
+                    <dt class="col-sm-5">Joined</dt>
+                    <dd class="col-sm-7">@Model.User.CreatedDate.ToShortDateString()</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4 border-info">
+            <div class="card-header bg-info text-dark">
+                <h5 class="mb-0"><i class="bi bi-link-45deg me-2"></i>Supervision</h5>
+            </div>
+            <div class="card-body">
+                @if (assignment != null)
+                {
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary rounded-circle text-white text-center me-3" style="width:40px; height:40px; line-height:40px;">
+                            <i class="bi bi-person-badge fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">@assignment.Guide.User.Name</h6>
+                            <small class="text-muted">@assignment.Guide.Designation</small>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a asp-action="GuideDetails" asp-route-id="@assignment.GuideId" class="btn btn-sm btn-outline-info w-100">View Guide Profile</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-3">
+                        <i class="bi bi-person-slash d-block fs-2 text-muted mb-2"></i>
+                        <p class="text-muted small">No guide assigned yet.</p>
+                        <a asp-action="AssignGuide" class="btn btn-sm btn-primary">Assign Now</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Internship Details -->
+    <div class="col-md-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-building me-2"></i>Internship Profile</h5>
+            </div>
+            <div class="card-body">
+                @if (internship != null)
+                {
+                    <div class="mb-4">
+                        <h4 class="text-primary fw-bold">@internship.CompanyName</h4>
+                        <span class="badge bg-success">@internship.Role</span>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-sm-6">
+                            <label class="text-muted d-block small fw-bold text-uppercase">Tech Stack</label>
+                            <div class="fs-5">@internship.TechnologyUsed</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="text-muted d-block small fw-bold text-uppercase">Duration</label>
+                            <div class="fs-5">
+                                <i class="bi bi-calendar3 me-1"></i> 
+                                @internship.StartDate.ToString("MMM yyyy") - @internship.EndDate.ToString("MMM yyyy")
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="text-muted d-block small fw-bold text-uppercase">Description</label>
+                            <p class="lead" style="font-size: 1rem; line-height: 1.6;">
+                                @(string.IsNullOrEmpty(internship.Description) ? "No description provided." : internship.Description)
+                            </p>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-briefcase display-1 text-light mb-3 d-block"></i>
+                        <h3>No Internship Details Found</h3>
+                        <p class="text-muted">The student hasn't updated their internship profile yet.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

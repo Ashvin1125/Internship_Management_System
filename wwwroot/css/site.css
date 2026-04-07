@@ -1,0 +1,70 @@
+/* Custom Dashboard Styles */
+:root {
+    --primary-color: #0d6efd;
+    --secondary-bg: #f8f9fa;
+    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --card-hover-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+body {
+    background-color: var(--secondary-bg);
+}
+
+/* Card Styling */
+.card-stats {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+    border-radius: 0.75rem;
+    box-shadow: var(--card-shadow);
+}
+.card-stats:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--card-hover-shadow);
+}
+
+/* Status Badges - Unified */
+.status-badge {
+    padding: 0.35em 0.8em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 50rem;
+}
+
+.status-pending { background-color: #fff3cd; color: #856404; }
+.status-approved { background-color: #d1e7dd; color: #0f5132; }
+.status-rejected { background-color: #f8d7da; color: #842029; }
+.status-info { background-color: #cff4fc; color: #055160; }
+
+/* Table Enhancements */
+.table-custom thead {
+    background-color: #f1f3f5;
+    color: #495057;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    font-weight: 800;
+}
+.table-custom tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.03);
+}
+
+/* Form Styles */
+.form-card {
+    border-radius: 1rem;
+    box-shadow: 0 1rem 3rem rgba(0,0,0,.175);
+    border: none;
+}
+
+/* Empty State Icons */
+.empty-state {
+    padding: 3rem;
+    text-align: center;
+    color: #adb5bd;
+}
+.empty-state i {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 1rem;
+}

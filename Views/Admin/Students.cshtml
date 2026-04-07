@@ -1,0 +1,72 @@
+@model IEnumerable<InternshipManagementSystem.Models.Student>
+
+@{
+    ViewData["Title"] = "Manage Students";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Students List</h2>
+    <a asp-action="CreateStudent" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i> Register Student</a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Enrollment</th>
+                        <th>Student Name & Email</th>
+                        <th>Department</th>
+                        <th>Semester</th>
+                        <th>Registered</th>
+                        <th class="text-end px-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-primary">@item.EnrollmentNumber</td>
+                                <td>
+                                    <div class="fw-bold">@item.User?.Name</div>
+                                    <small class="text-muted">@item.User?.Email</small>
+                                </td>
+                                <td><span class="badge bg-light text-dark border">@item.Department</span></td>
+                                <td><span class="badge bg-info bg-opacity-10 text-info">Sem @item.Semester</span></td>
+                                <td>@item.User?.CreatedDate.ToString("dd MMM yyyy")</td>
+                                <td class="text-end px-4">
+                                    <div class="btn-group shadow-sm">
+                                        <a asp-action="StudentDetails" asp-route-id="@item.StudentId" class="btn btn-sm btn-outline-primary" title="View Profile">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <form asp-action="DeleteStudent" asp-route-id="@item.StudentId" method="post" onsubmit="return confirm('Are you sure you want to delete this student and all their records?');" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Student">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <i class="bi bi-people"></i>
+                                    <h5>No Students Registered</h5>
+                                    <p>Click 'Register Student' to add a new intern to the system.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
