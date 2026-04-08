@@ -6,41 +6,33 @@
 
 <div class="row align-items-center mb-4">
     <div class="col-md-7">
-        <h2 class="fw-bold text-dark mb-1">Documents & Submissions</h2>
+        <h2 class="fw-bold mb-1">Documents & Submissions</h2>
         <p class="text-muted mb-0 small">Manage your internship project reports, presentations, and technical documentation.</p>
     </div>
-    <div class="col-md-5">
-        <div class="d-flex justify-content-md-end gap-2 mt-3 mt-md-0">
-            <span class="badge status-badge status-info bg-opacity-10 border border-info border-opacity-25 px-3 py-2 text-info">PDF</span>
-            <span class="badge status-badge status-info bg-opacity-10 border border-info border-opacity-25 px-3 py-2 text-info">DOCX</span>
-            <span class="badge status-badge status-info bg-opacity-10 border border-info border-opacity-25 px-3 py-2 text-info">PPTX</span>
-            <span class="badge status-badge status-info bg-opacity-10 border border-info border-opacity-25 px-3 py-2 text-info">ZIP</span>
+</div>
+
+<div class="ims-card border-0 mb-4 overflow-hidden">
+    <div class="border-bottom border-light pb-3 mb-3">
+        <h5 class="fw-bold text-primary mb-0"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Upload New Submission</h5>
+    </div>
+    <form asp-action="UploadDocument" method="post" enctype="multipart/form-data" class="row g-3 align-items-end">
+        @Html.AntiForgeryToken()
+        <div class="col-md-8">
+            <label class="form-label small fw-bold text-muted text-uppercase mb-1">Select File (max 50MB)</label>
+            <input type="file" name="file" class="form-control border-0 bg-light py-2" required />
         </div>
-    </div>
+        <div class="col-md-4">
+            <button type="submit" class="ims-btn ims-btn-primary w-100 justify-content-center shadow-sm">
+                <i class="bi bi-cloud-arrow-up"></i> Confirm Upload
+            </button>
+        </div>
+    </form>
 </div>
 
-<div class="card shadow-sm border-0 bg-primary bg-opacity-10 mb-4 rounded-4 overflow-hidden">
-    <div class="card-body p-4">
-        <h5 class="fw-bold text-primary mb-3"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Upload New Submission</h5>
-        <form asp-action="UploadDocument" method="post" enctype="multipart/form-data" class="row g-3 align-items-end">
-            @Html.AntiForgeryToken()
-            <div class="col-md-8">
-                <label class="form-label small fw-bold text-muted text-uppercase mb-1">Select File (max 50MB)</label>
-                <input type="file" name="file" class="form-control border-0 shadow-sm py-2" required />
-            </div>
-            <div class="col-md-4">
-                <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm fw-bold">
-                    <i class="bi bi-cloud-arrow-up me-2"></i> Confirm Upload
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-custom table-hover mb-0 align-middle">
+<div class="ims-card p-0 overflow-hidden">
+    <div class="ims-table-container">
+        <div class="table-responsive-ims">
+            <table class="ims-table">
                 <thead>
                     <tr>
                         <th class="ps-4">File Repository</th>
@@ -67,13 +59,13 @@
                                 </td>
                                 <td><span class="text-muted">@item.UploadDate.ToString("dd MMM yyyy, hh:mm tt")</span></td>
                                 <td class="text-end pe-4">
-                                    <div class="btn-group shadow-sm">
-                                        <a asp-action="DownloadDocument" asp-route-id="@item.DocumentId" class="btn btn-sm btn-outline-primary" title="Download File">
+                                    <div class="d-flex justify-content-end gap-2 text-end pe-4">
+                                        <a asp-action="DownloadDocument" asp-route-id="@item.DocumentId" class="ims-btn ims-btn-primary py-1 px-2 small" title="Download File">
                                             <i class="bi bi-download"></i>
                                         </a>
                                         <form asp-action="DeleteDocument" asp-route-id="@item.DocumentId" method="post" onsubmit="return confirm('Are you sure you want to permanently delete this file?');" class="d-inline">
                                             @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove Document">
+                                            <button type="submit" class="ims-btn bg-danger text-white py-1 px-2 small" title="Remove Document">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -86,10 +78,10 @@
                     {
                         <tr>
                             <td colspan="3">
-                                <div class="empty-state py-5">
-                                    <i class="bi bi-cloud-slash display-4 text-muted d-block mb-3"></i>
-                                    <h5 class="text-dark">No Documents Found</h5>
-                                    <p class="text-muted mb-0">Your submission list is empty. Start by uploading your first document.</p>
+                                <div class="ims-empty-state">
+                                    <i class="bi bi-cloud-slash text-primary"></i>
+                                    <h5>No Documents Found</h5>
+                                    <p class="mb-0">Your submission list is empty. Start by uploading your first document.</p>
                                 </div>
                             </td>
                         </tr>

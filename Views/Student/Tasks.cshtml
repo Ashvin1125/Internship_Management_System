@@ -5,13 +5,13 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Assigned Tasks</h2>
+    <h2 class="fw-bold mb-0">Assigned Tasks</h2>
 </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-custom table-hover mb-0 align-middle">
+<div class="ims-card p-0 overflow-hidden">
+    <div class="ims-table-container">
+        <div class="table-responsive-ims">
+            <table class="ims-table">
                 <thead>
                     <tr>
                         <th class="px-3">Task Overview</th>
@@ -43,36 +43,34 @@
                                     }
                                 </td>
                                 <td>
-                                    @if (task.Status == "Assigned") { <span class="status-badge status-info">Assigned</span> }
-                                    else if (task.Status == "InProgress") { <span class="status-badge status-pending">In Progress</span> }
-                                    else { <span class="status-badge status-approved">Completed</span> }
+                                    @if (task.Status == "Assigned") { <span class="ims-status ims-status-info bg-info bg-opacity-10 text-info">Assigned</span> }
+                                    else if (task.Status == "InProgress") { <span class="ims-status ims-status-warning">In Progress</span> }
+                                    else { <span class="ims-status ims-status-success">Completed</span> }
                                 </td>
                                 <td class="text-end px-4">
-                                    @if (task.Status != "Completed")
-                                    {
-                                        <form asp-action="UpdateTaskStatus" method="post" class="d-flex gap-2" data-ajax="true">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="taskId" value="@task.TaskId" />
-                                            <div class="btn-group shadow-sm">
-                                                @if (task.Status == "Assigned")
-                                                {
-                                                    <button type="submit" name="status" value="InProgress" class="btn btn-sm btn-outline-primary" title="Start Working">
-                                                        <i class="bi bi-play-fill me-1"></i>Start
-                                                    </button>
-                                                }
-                                                <button type="submit" name="status" value="Completed" class="btn btn-sm btn-success" title="Mark as Finished">
-                                                    <i class="bi bi-check-circle me-1"></i>Done
-                                                </button>
-                                            </div>
-                                        </form>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 py-2 px-3">
-                                            <i class="bi bi-check-circle-fill me-1"></i> Finished
-                                        </span>
-                                    }
-                                </td>
+                                @if (task.Status != "Completed")
+                                {
+                                    <form asp-action="UpdateTaskStatus" method="post" class="ims-ajax-form d-flex gap-2 justify-content-end" data-ajax="true">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="taskId" value="@task.TaskId" />
+                                        @if (task.Status == "Assigned")
+                                        {
+                                            <button type="submit" name="status" value="InProgress" class="ims-btn ims-btn-primary py-1 px-3 small">
+                                                <i class="bi bi-play-fill"></i> Start
+                                            </button>
+                                        }
+                                        <button type="submit" name="status" value="Completed" class="ims-btn bg-success text-white py-1 px-3 small">
+                                            <i class="bi bi-check-circle"></i> Done
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="ims-status ims-status-success">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Finished
+                                    </span>
+                                }
+                            </td>
                             </tr>
                         }
                     }
@@ -80,8 +78,8 @@
                     {
                         <tr>
                             <td colspan="5">
-                                <div class="empty-state">
-                                    <i class="bi bi-list-check text-muted"></i>
+                                <div class="ims-empty-state">
+                                    <i class="bi bi-list-check text-primary"></i>
                                     <h5>No Tasks Assigned</h5>
                                     <p class="mb-0">You're all caught up! No tasks have been assigned by your guide yet.</p>
                                 </div>

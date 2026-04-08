@@ -201,29 +201,51 @@
         }
         
         <div class="ims-page">
-            @if (TempData["Success"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show ims-card border-0 mb-4 p-3" role="alert">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-check-circle-fill fs-5"></i> 
-                        <div>@TempData["Success"]</div>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            }
-            @if (TempData["Error"] != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show ims-card border-0 mb-4 p-3" role="alert">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-exclamation-triangle-fill fs-5"></i> 
-                        <div>@TempData["Error"]</div>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            }
             <main role="main">
                 @RenderBody()
             </main>
+        </div>
+    </div>
+
+    <!-- Global Notification System (SweetAlert2) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            @if (TempData["Success"] != null)
+            {
+                <text>
+                Swal.fire({
+                    title: 'Success!',
+                    text: '@Html.Raw(TempData["Success"])',
+                    icon: 'success',
+                    confirmButtonColor: '#0d6efd',
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        popup: 'ims-card border-0',
+                        confirmButton: 'ims-btn ims-btn-primary px-5'
+                    },
+                    buttonsStyling: false
+                });
+                </text>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <text>
+                Swal.fire({
+                    title: 'Error!',
+                    text: '@Html.Raw(TempData["Error"])',
+                    icon: 'error',
+                    confirmButtonColor: '#0d6efd',
+                    confirmButtonText: 'Try Again',
+                    customClass: {
+                        popup: 'ims-card border-0',
+                        confirmButton: 'ims-btn ims-btn-primary px-5'
+                    },
+                    buttonsStyling: false
+                });
+                </text>
+            }
+        });
+    </script>
         </div>
     </div>
 

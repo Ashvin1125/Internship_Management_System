@@ -5,14 +5,14 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Tasks Assigned by Me</h2>
-    <a asp-action="AssignTask" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i> Assign New Task</a>
+    <h2 class="fw-bold mb-0">Tasks Assigned by Me</h2>
+    <a asp-action="AssignTask" class="ims-btn ims-btn-primary"><i class="bi bi-plus-circle me-1"></i> Assign New Task</a>
 </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-custom table-hover mb-0">
+<div class="ims-card p-0 overflow-hidden">
+    <div class="ims-table-container">
+        <div class="table-responsive-ims">
+            <table class="ims-table">
                 <thead>
                     <tr>
                         <th>Task Information</th>
@@ -35,10 +35,10 @@
                                 </td>
                                 <td><span class="badge bg-light text-dark border"><i class="bi bi-calendar-event me-1"></i> @task.Deadline.ToString("dd MMM yyyy")</span></td>
                                 <td>
-                                    @if (task.Status == "Assigned") { <span class="status-badge status-info">Assigned</span> }
-                                    else if (task.Status == "InProgress") { <span class="status-badge status-pending">In Progress</span> }
-                                    else if (task.Status == "Completed") { <span class="status-badge status-approved">Completed</span> }
-                                    else { <span class="status-badge bg-light text-dark">@task.Status</span> }
+                                    @if (task.Status == "Assigned") { <span class="ims-status ims-status-info bg-info bg-opacity-10 text-info">Assigned</span> }
+                                    else if (task.Status == "InProgress") { <span class="ims-status ims-status-warning">In Progress</span> }
+                                    else if (task.Status == "Completed") { <span class="ims-status ims-status-success">Completed</span> }
+                                    else { <span class="ims-status bg-light text-dark">@task.Status</span> }
                                 </td>
                                 <td class="px-3"><small class="text-muted">@(task.Description?.Length > 40 ? task.Description.Substring(0, 40) + "..." : task.Description ?? "—")</small></td>
                             </tr>
@@ -48,8 +48,8 @@
                     {
                         <tr>
                             <td colspan="5">
-                                <div class="empty-state">
-                                    <i class="bi bi-list-task text-muted"></i>
+                                <div class="ims-empty-state">
+                                    <i class="bi bi-list-task text-primary"></i>
                                     <h5>No Tasks Assigned</h5>
                                     <p class="mb-0">You haven't assigned any tasks to your students yet.</p>
                                 </div>

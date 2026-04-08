@@ -11,9 +11,10 @@
     </div>
 </div>
 
-<div class="ims-card p-0">
-    <div class="table-responsive">
-        <table class="table ims-table mb-0 align-middle">
+<div class="ims-card p-0 overflow-hidden">
+    <div class="ims-table-container">
+        <div class="table-responsive-ims">
+            <table class="ims-table">
             <thead>
                 <tr>
                     <th class="ps-4">Week info</th>
@@ -48,22 +49,23 @@
                                 </button>
                             </td>
                             <td>
-                                @if (item.Status == "Pending") { <span class="status-badge status-pending">Pending</span> }
-                                else if (item.Status == "Approved") { <span class="status-badge status-approved">Approved</span> }
-                                else { <span class="status-badge status-rejected">Rejected</span> }
+                                @if (item.Status == "Pending") { <span class="ims-status ims-status-warning">Pending</span> }
+                                else if (item.Status == "Approved") { <span class="ims-status ims-status-success">Approved</span> }
+                                else { <span class="ims-status ims-status-danger">Rejected</span> }
                             </td>
                             <td class="pe-4 py-3">
                                 @if (item.Status == "Pending")
                                 {
-                                    <form asp-action="ApproveWeeklyReport" method="post" data-ajax="true" class="ims-ajax-form">
+                                    <form asp-action="ApproveWeeklyReport" method="post" data-ajax="true" class="ims-ajax-form d-flex gap-2">
+                                        @Html.AntiForgeryToken()
                                         <input type="hidden" name="reportId" value="@item.ReportId" />
-                                        <div class="input-group input-group-sm mb-0">
-                                            <input type="text" name="comment" class="form-control bg-transparent border-end-0" 
-                                                   placeholder="Feedback msg..." style="border-radius: 8px 0 0 8px;">
-                                            <button type="submit" name="action" value="Approve" class="btn btn-outline-success border-start-0 border-end-0" title="Approve Report">
+                                        <input type="text" name="comment" class="form-control form-control-sm border-0 bg-light" 
+                                               placeholder="Feedback msg..." style="border-radius: 8px;">
+                                        <div class="btn-group shadow-sm">
+                                            <button type="submit" name="action" value="Approve" class="ims-btn bg-success text-white py-1 px-2 small" title="Approve Report">
                                                 <i class="bi bi-check-lg"></i>
                                             </button>
-                                            <button type="submit" name="action" value="Reject" class="btn btn-outline-danger border-start-0" title="Reject Report" style="border-radius: 0 8px 8px 0;">
+                                            <button type="submit" name="action" value="Reject" class="ims-btn bg-danger text-white py-1 px-2 small" title="Reject Report">
                                                 <i class="bi bi-x-lg"></i>
                                             </button>
                                         </div>
@@ -83,18 +85,17 @@
                 {
                     <tr>
                         <td colspan="5">
-                            <div class="text-center py-5">
-                                <div class="bg-light bg-opacity-10 rounded-circle d-inline-flex p-4 mb-3">
-                                    <i class="bi bi-file-earmark-bar-graph text-muted fs-1"></i>
-                                </div>
-                                <h5 class="fw-bold">No Weekly Reports</h5>
-                                <p class="text-muted">Assigned students haven't submitted any weekly reports yet.</p>
+                            <div class="ims-empty-state">
+                                <i class="bi bi-file-earmark-bar-graph text-primary"></i>
+                                <h5>No Weekly Reports</h5>
+                                <p class="mb-0">Assigned students haven't submitted any weekly reports yet.</p>
                             </div>
                         </td>
                     </tr>
                 }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

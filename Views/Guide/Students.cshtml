@@ -32,15 +32,15 @@
                                 </td>
                                 <td><span class="ims-status ims-status-warning">Sem @item.Student?.Semester</span></td>
                                 <td class="text-end px-4">
-                                    <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                                        <a asp-action="StudentDetails" asp-route-id="@item.StudentId" class="btn btn-sm btn-outline-primary border-0 py-2 px-3" title="View Profile">
-                                            <i class="bi bi-eye me-1"></i> Profile
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a asp-action="StudentDetails" asp-route-id="@item.StudentId" class="ims-btn ims-btn-primary py-1 px-2 small" title="View Profile">
+                                            <i class="bi bi-eye"></i>
                                         </a>
-                                        <a asp-action="StudentDocuments" asp-route-studentId="@item.StudentId" class="btn btn-sm btn-outline-dark border-0 py-2 px-3" title="View Documents">
-                                            <i class="bi bi-folder2 me-1"></i> Docs
+                                        <a asp-action="StudentDocuments" asp-route-studentId="@item.StudentId" class="ims-btn bg-dark text-white py-1 px-2 small" title="View Documents">
+                                            <i class="bi bi-folder2"></i>
                                         </a>
-                                        <a asp-action="AssignTask" asp-route-studentId="@item.StudentId" class="btn btn-sm btn-outline-info border-0 py-2 px-3" title="Assign Task">
-                                            <i class="bi bi-plus-circle me-1"></i> Task
+                                        <a asp-action="AssignTask" asp-route-studentId="@item.StudentId" class="ims-btn bg-info text-white py-1 px-2 small" title="Assign Task">
+                                            <i class="bi bi-plus-circle"></i>
                                         </a>
                                     </div>
                                 </td>

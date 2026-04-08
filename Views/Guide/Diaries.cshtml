@@ -5,13 +5,13 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Student Diaries for Review</h2>
+    <h2 class="fw-bold mb-0">Student Diaries for Review</h2>
 </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-custom table-hover mb-0 align-middle">
+<div class="ims-card p-0 overflow-hidden">
+    <div class="ims-table-container">
+        <div class="table-responsive-ims">
+            <table class="ims-table">
                 <thead>
                     <tr>
                         <th>Date</th>
@@ -34,21 +34,22 @@
                                 </td>
                                 <td class="small">@(item.WorkDescription?.Length > 60 ? item.WorkDescription.Substring(0, 60) + "..." : item.WorkDescription)</td>
                                 <td>
-                                    @if (item.Status == "Pending") { <span class="status-badge status-pending">Pending</span> }
-                                    else if (item.Status == "Approved") { <span class="status-badge status-approved">Approved</span> }
-                                    else { <span class="status-badge status-rejected">Rejected</span> }
+                                    @if (item.Status == "Pending") { <span class="ims-status ims-status-warning">Pending</span> }
+                                    else if (item.Status == "Approved") { <span class="ims-status ims-status-success">Approved</span> }
+                                    else { <span class="ims-status ims-status-danger">Rejected</span> }
                                 </td>
                                 <td class="px-3 py-3">
                                     @if (item.Status == "Pending")
                                     {
-                                        <form asp-action="ApproveDiary" method="post" data-ajax="true">
+                                        <form asp-action="ApproveDiary" method="post" data-ajax="true" class="ims-ajax-form d-flex gap-2">
+                                            @Html.AntiForgeryToken()
                                             <input type="hidden" name="diaryId" value="@item.DiaryId" />
                                             <input type="text" name="comment" class="form-control form-control-sm border-0 bg-light" placeholder="Feedback msg..." style="border-radius: 8px;" />
                                             <div class="btn-group shadow-sm">
-                                                <button type="submit" name="action" value="Approve" class="btn btn-sm btn-success" title="Approve Entry">
+                                                <button type="submit" name="action" value="Approve" class="ims-btn bg-success text-white py-1 px-2 small" title="Approve Entry">
                                                     <i class="bi bi-check-lg"></i>
                                                 </button>
-                                                <button type="submit" name="action" value="Reject" class="btn btn-sm btn-danger" title="Reject Entry">
+                                                <button type="submit" name="action" value="Reject" class="ims-btn bg-danger text-white py-1 px-2 small" title="Reject Entry">
                                                     <i class="bi bi-x-lg"></i>
                                                 </button>
                                             </div>
@@ -68,8 +69,8 @@
                     {
                         <tr>
                             <td colspan="5">
-                                <div class="empty-state">
-                                    <i class="bi bi-journal-text text-muted"></i>
+                                <div class="ims-empty-state">
+                                    <i class="bi bi-journal-text text-primary"></i>
                                     <h5>No Diaries Submitted</h5>
                                     <p class="mb-0">Your assigned students haven't submitted any diary entries yet.</p>
                                 </div>
