@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("InternshipManagementSystem")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+df4a0bdccdd45c9b433fb59a2b80e8efc37c016d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3682f0a86c50a49e3b00293a80aeb90ab9f7a80f")]
 [assembly: System.Reflection.AssemblyProductAttribute("InternshipManagementSystem")]
 [assembly: System.Reflection.AssemblyTitleAttribute("InternshipManagementSystem")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

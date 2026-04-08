@@ -164,3 +164,10 @@ C:\Users\Ashvin\.gemini\antigravity\scratch\InternshipManagementSystem\bin\Debug
 C:\Users\Ashvin\.gemini\antigravity\scratch\InternshipManagementSystem\bin\Debug\net8.0\runtimes\win-arm64\native\e_sqlite3.dll
 C:\Users\Ashvin\.gemini\antigravity\scratch\InternshipManagementSystem\bin\Debug\net8.0\runtimes\win-x64\native\e_sqlite3.dll
 C:\Users\Ashvin\.gemini\antigravity\scratch\InternshipManagementSystem\bin\Debug\net8.0\runtimes\win-x86\native\e_sqlite3.dll
+C:\Users\Ashvin\.gemini\antigravity\scratch\InternshipManagementSystem\bin\Debug\net8.0\out\web.config
+C:\Users\Ashvin\.gemini\antigravity\scratch\InternshipManagementSystem\bin\Debug\net8.0\out\appsettings.Development.json
+C:\Users\Ashvin\.gemini\antigravity\scratch\InternshipManagementSystem\bin\Debug\net8.0\out\appsettings.json
+C:\Users\Ashvin\.gemini\antigravity\scratch\InternshipManagementSystem\bin\Debug\net8.0\out\appsettings.Production.json
+C:\Users\Ashvin\.gemini\antigravity\scratch\InternshipManagementSystem\bin\Debug\net8.0\out\InternshipManagementSystem.deps.json
+C:\Users\Ashvin\.gemini\antigravity\scratch\InternshipManagementSystem\bin\Debug\net8.0\out\InternshipManagementSystem.runtimeconfig.json
+C:\Users\Ashvin\.gemini\antigravity\scratch\InternshipManagementSystem\bin\Debug\net8.0\out\InternshipManagementSystem.staticwebassets.endpoints.json

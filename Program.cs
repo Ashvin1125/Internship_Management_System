@@ -5,6 +5,7 @@ using InternshipManagementSystem.Helpers;
 using Microsoft.AspNetCore.Http;
 using InternshipManagementSystem.Services;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.DataProtection;
 using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +27,11 @@ builder.Logging.AddConsole();
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 
+// Step 1: Persist DataProtection Keys (Fixes session breaks on Render refresh)
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("/app/keys"))
+    .SetApplicationName("InternshipManagementSystem");
+
 if (builder.Environment.IsProduction())
 {
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -37,11 +43,8 @@ else
         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 }
 
-// Step 6: Enable HTTPS redirection safe for proxy
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
-{
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-});
+// Note: Configured in app.UseForwardedHeaders for specific proxy requirements
+
 
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IGuideService, GuideService>();
@@ -57,6 +60,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied";
         options.CookieManager = new MultiSessionCookieManager();
     });
+
+// Step 3: Cookie Fix for HTTPS proxy
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
 
 builder.Services.AddCors(options =>
 {
@@ -123,8 +133,16 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Step 6: Forward headers (must be early in pipeline)
-app.UseForwardedHeaders();
+// Step 2: Forwarded Headers (Render Proxy Fix)
+var forwardedHeadersOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                      ForwardedHeaders.XForwardedProto
+};
+forwardedHeadersOptions.KnownNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+
+app.UseForwardedHeaders(forwardedHeadersOptions);
 
 // Only redirect HTTPS in development; in production Render/Railway handle TLS at the proxy level
 if (app.Environment.IsDevelopment())
@@ -182,5 +200,8 @@ app.MapControllerRoute(
     pattern: "{sid}/{controller=Account}/{action=Login}/{id?}");
 
 // Note: /api/health is handled by HealthController — no duplicate needed here
+
+// Step 4: Ensure keys directory exists
+Directory.CreateDirectory("/app/keys");
 
 app.Run();
