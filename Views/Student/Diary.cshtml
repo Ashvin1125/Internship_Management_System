@@ -27,7 +27,7 @@
                         foreach (var item in Model)
                         {
                             <tr>
-                                <td><span class="ims-status ims-status-success bg-opacity-10 text-dark border-0"><i class="bi bi-calendar-event me-1"></i> @item.WorkDate.ToString("dd MMM yyyy")</span></td>
+                                <td><span class="ims-status ims-badge-date"><i class="bi bi-calendar-event me-1"></i> @item.WorkDate.ToString("dd MMM yyyy")</span></td>
                                 <td class="small text-muted">@(item.WorkDescription.Length > 80 ? item.WorkDescription.Substring(0, 80) + "..." : item.WorkDescription)</td>
                                 <td>
                                     @if(item.Status == "Pending") { <span class="ims-status ims-status-warning">Pending</span> }

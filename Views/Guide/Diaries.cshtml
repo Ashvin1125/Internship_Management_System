@@ -27,7 +27,7 @@
                         foreach (var item in Model)
                         {
                             <tr>
-                                <td><span class="badge bg-light text-dark border"><i class="bi bi-calendar-event me-1"></i> @item.WorkDate.ToString("dd MMM yyyy")</span></td>
+                                <td><span class="ims-status ims-badge-date"><i class="bi bi-calendar-event me-1"></i> @item.WorkDate.ToString("dd MMM yyyy")</span></td>
                                 <td>
                                     <div class="fw-bold">@item.Student?.User?.Name</div>
                                     <small class="text-muted">Enroll: @item.Student?.EnrollmentNumber</small>

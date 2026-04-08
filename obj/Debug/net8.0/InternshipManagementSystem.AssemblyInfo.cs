@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("InternshipManagementSystem")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+979e08b2b044be26b528a2fa44b55397fc79a06b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d444b51f7e992fb22e5b5becd5d55aaa62cce2b1")]
 [assembly: System.Reflection.AssemblyProductAttribute("InternshipManagementSystem")]
 [assembly: System.Reflection.AssemblyTitleAttribute("InternshipManagementSystem")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

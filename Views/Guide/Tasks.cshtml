@@ -33,7 +33,7 @@
                                     <div class="fw-bold">@task.Student?.User?.Name</div>
                                     <small class="text-muted">Enroll: @task.Student?.EnrollmentNumber</small>
                                 </td>
-                                <td><span class="badge bg-light text-dark border"><i class="bi bi-calendar-event me-1"></i> @task.Deadline.ToString("dd MMM yyyy")</span></td>
+                                <td><span class="ims-status ims-badge-date"><i class="bi bi-calendar-event me-1"></i> @task.Deadline.ToString("dd MMM yyyy")</span></td>
                                 <td>
                                     @if (task.Status == "Assigned") { <span class="ims-status ims-status-info bg-info bg-opacity-10 text-info">Assigned</span> }
                                     else if (task.Status == "InProgress") { <span class="ims-status ims-status-warning">In Progress</span> }
