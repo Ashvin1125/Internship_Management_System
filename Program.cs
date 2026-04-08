@@ -9,9 +9,14 @@ using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Step 4: Dynamic Port Binding (for Render)
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+// Step 4: Dynamic Port Binding (Render/Railway inject $PORT; Docker uses ASPNETCORE_URLS)
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
+// If PORT is not set, ASPNETCORE_URLS env var (set in Dockerfile to 8080) takes effect automatically
+
 
 // Step 7: Logging (Enable default ASP.NET logging)
 builder.Logging.ClearProviders();

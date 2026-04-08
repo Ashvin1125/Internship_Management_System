@@ -1,0 +1,32 @@
+# Build artifacts
+bin/
+obj/
+out/
+
+# SQLite database (generated at runtime, not part of image)
+*.db
+*.db-shm
+*.db-wal
+
+# Uploaded files (generated at runtime)
+wwwroot/uploads/
+
+# VS / Rider / OS junk
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+Thumbs.db
+.DS_Store
+
+# git
+.git/
+
+# Logs
+*.log
+build_errors.txt
+build_output.txt
+publish_output.txt
+out.txt
+restore.log
