@@ -1,0 +1,133 @@
+@model IEnumerable<InternshipManagementSystem.Models.WeeklyReport>
+
+@{
+    ViewData["Title"] = "Student Weekly Reports";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0">Weekly Reports Review</h2>
+        <p class="text-muted mb-0">Moderation and feedback for assigned students</p>
+    </div>
+</div>
+
+<div class="ims-card p-0">
+    <div class="table-responsive">
+        <table class="table ims-table mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th class="ps-4">Week info</th>
+                    <th>Student Details</th>
+                    <th>Summary Overview</th>
+                    <th>Current Status</th>
+                    <th style="min-width:320px" class="pe-4">Moderation / Feedback</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2">
+                                    <i class="bi bi-calendar-range me-1"></i> Week @item.WeekNumber
+                                </span>
+                            </td>
+                            <td>
+                                <div class="fw-bold">@item.Student?.User?.Name</div>
+                                <small class="text-muted">Enroll: @item.Student?.EnrollmentNumber</small>
+                            </td>
+                            <td>
+                                <div class="small text-truncate" style="max-width: 200px;" title="@item.Summary">
+                                    @item.Summary
+                                </div>
+                                <button type="button" class="btn btn-link btn-sm p-0 text-primary text-decoration-none" 
+                                        onclick="viewSummary('@item.WeekNumber', '@item.Student?.User?.Name', '@item.Summary.Replace("'", "\\'").Replace("\r\n", " ").Replace("\n", " ")')">
+                                    Read full
+                                </button>
+                            </td>
+                            <td>
+                                @if (item.Status == "Pending") { <span class="status-badge status-pending">Pending</span> }
+                                else if (item.Status == "Approved") { <span class="status-badge status-approved">Approved</span> }
+                                else { <span class="status-badge status-rejected">Rejected</span> }
+                            </td>
+                            <td class="pe-4 py-3">
+                                @if (item.Status == "Pending")
+                                {
+                                    <form asp-action="ApproveWeeklyReport" method="post" data-ajax="true" class="ims-ajax-form">
+                                        <input type="hidden" name="reportId" value="@item.ReportId" />
+                                        <div class="input-group input-group-sm mb-0">
+                                            <input type="text" name="comment" class="form-control bg-transparent border-end-0" 
+                                                   placeholder="Feedback msg..." style="border-radius: 8px 0 0 8px;">
+                                            <button type="submit" name="action" value="Approve" class="btn btn-outline-success border-start-0 border-end-0" title="Approve Report">
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
+                                            <button type="submit" name="action" value="Reject" class="btn btn-outline-danger border-start-0" title="Reject Report" style="border-radius: 0 8px 8px 0;">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <div class="p-2 glass-card-sm small text-muted border-start border-3 @(item.Status == "Approved" ? "border-success" : "border-danger")">
+                                        <i class="bi bi-chat-right-dots me-2"></i> @(string.IsNullOrWhiteSpace(item.GuideComment) ? "No comment provided." : item.GuideComment)
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5">
+                            <div class="text-center py-5">
+                                <div class="bg-light bg-opacity-10 rounded-circle d-inline-flex p-4 mb-3">
+                                    <i class="bi bi-file-earmark-bar-graph text-muted fs-1"></i>
+                                </div>
+                                <h5 class="fw-bold">No Weekly Reports</h5>
+                                <p class="text-muted">Assigned students haven't submitted any weekly reports yet.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Summary Modal -->
+<div class="modal fade" id="summaryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="ims-card modal-content border-0 p-0 overflow-hidden">
+            <div class="modal-header border-0 pb-0 ps-4 pe-4 pt-4">
+                <h5 class="modal-title fw-bold" id="modalTitle">Report Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="modalSummary" class="p-3 bg-light bg-opacity-10 rounded-3 text-muted" style="white-space: pre-line;">
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="ims-btn ims-btn-primary w-100" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function viewSummary(week, name, summary) {
+            document.getElementById('modalTitle').innerText = `Week ${week} Report - ${name}`;
+            document.getElementById('modalSummary').innerText = summary;
+            new bootstrap.Modal(document.getElementById('summaryModal')).show();
+        }
+
+        $(document).on('submit', '.ims-ajax-form', function(e) {
+            e.Value = $(document.activeElement).val();
+            // Optional: Implement AJAX refresh logic if site.js doesn't handle global .ims-ajax-form
+        });
+    </script>
+}

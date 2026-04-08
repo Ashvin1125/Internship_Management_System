@@ -2,6 +2,7 @@
 bin/
 obj/
 out/
+Docs/
 
 # SQLite database (generated at runtime, not part of image)
 *.db

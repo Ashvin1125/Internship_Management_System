@@ -3,7 +3,7 @@
 }
 
 <div class="row g-4 mb-4">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="ims-card h-100 border-start border-info border-4">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
@@ -19,7 +19,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="ims-card h-100 border-start border-warning border-4">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
@@ -35,7 +35,23 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
+        <div class="ims-card h-100 border-start border-success border-4">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="text-muted small fw-bold text-uppercase mb-1">Weekly Reports</p>
+                    <h2 class="mb-0 fw-bold text-success px-0">@ViewBag.PendingWeeklyReports</h2>
+                </div>
+                <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+                    <i class="bi bi-file-earmark-bar-graph fs-4 text-success"></i>
+                </div>
+            </div>
+            <div class="mt-3">
+                <a class="small text-success fw-bold text-decoration-none stretched-link" asp-action="WeeklyReports">Review Reports <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
         <div class="ims-card h-100 border-start border-primary border-4">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
@@ -71,6 +87,13 @@
                     <div class="d-flex align-items-center gap-3">
                         <div class="bg-primary bg-opacity-10 p-2 rounded-circle"><i class="bi bi-plus-circle text-primary"></i></div>
                         <span class="fw-bold">Assign New Internship Task</span>
+                    </div>
+                    <i class="bi bi-chevron-right small text-muted"></i>
+                </a>
+                <a asp-action="WeeklyReports" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 border-0 rounded bg-transparent ims-hover-accent">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-success bg-opacity-10 p-2 rounded-circle"><i class="bi bi-file-earmark-bar-graph text-success"></i></div>
+                        <span class="fw-bold">Review Weekly Reports</span>
                     </div>
                     <i class="bi bi-chevron-right small text-muted"></i>
                 </a>

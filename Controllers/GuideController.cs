@@ -55,6 +55,8 @@ namespace InternshipManagementSystem.Controllers
             ViewBag.AssignedStudents = assignedStudentIds.Count;
             ViewBag.PendingDiaries = await _context.DailyDiaries
                 .CountAsync(d => assignedStudentIds.Contains(d.StudentId) && d.Status == "Pending");
+            ViewBag.PendingWeeklyReports = await _context.WeeklyReports
+                .CountAsync(r => assignedStudentIds.Contains(r.StudentId) && r.Status == "Pending");
             ViewBag.TasksAssigned = await _context.Tasks.CountAsync(t => t.GuideId == guideId);
             return View();
         }
@@ -87,6 +89,25 @@ namespace InternshipManagementSystem.Controllers
                 .ToListAsync();
                 
             return View(diaries);
+        }
+
+        public async Task<IActionResult> WeeklyReports()
+        {
+            var guideId = await GetGuideIdAsync();
+            
+            var assignedStudentIds = await _context.GuideAssignments
+                .Where(ga => ga.GuideId == guideId)
+                .Select(ga => ga.StudentId)
+                .ToListAsync();
+
+            var reports = await _context.WeeklyReports
+                .Include(r => r.Student)
+                .ThenInclude(s => s.User)
+                .Where(r => assignedStudentIds.Contains(r.StudentId))
+                .OrderByDescending(r => r.WeekNumber)
+                .ToListAsync();
+                
+            return View(reports);
         }
         [HttpGet]
         public async Task<IActionResult> AssignTask()
@@ -188,6 +209,39 @@ namespace InternshipManagementSystem.Controllers
                 }
             }
             return RedirectToAction("Diaries");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveWeeklyReport(int reportId, string action, string comment)
+        {
+            var guideId = await GetGuideIdAsync();
+            var report = await _context.WeeklyReports.Include(r => r.Student).FirstOrDefaultAsync(r => r.ReportId == reportId);
+            
+            if (report != null)
+            {
+                var isAssigned = await _context.GuideAssignments.AnyAsync(ga => ga.GuideId == guideId && ga.StudentId == report.StudentId);
+                if (!isAssigned) return Unauthorized();
+
+                try 
+                {
+                    report.Status = action == "Approve" ? "Approved" : "Rejected";
+                    report.GuideComment = comment;
+                    await _context.SaveChangesAsync();
+                    
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        return Json(new { success = true, message = $"Weekly Report {report.Status.ToLower()} successfully.", reload = true });
+
+                    TempData["Success"] = $"Weekly Report {report.Status.ToLower()} successfully.";
+                }
+                catch (Exception ex)
+                {
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        return Json(new { success = false, message = "Error updating report: " + ex.Message });
+                    TempData["Error"] = "Error updating report: " + ex.Message;
+                }
+            }
+            return RedirectToAction("WeeklyReports");
         }
 
         public async Task<IActionResult> Tasks()

@@ -19459,6 +19459,11 @@
       "FileKind": "mvc"
     },
     {
+      "FilePath": "c:\\Users\\Ashvin\\.gemini\\antigravity\\scratch\\InternshipManagementSystem\\Views\\Guide\\WeeklyReports.cshtml",
+      "TargetPath": "Views\\Guide\\WeeklyReports.cshtml",
+      "FileKind": "mvc"
+    },
+    {
       "FilePath": "c:\\Users\\Ashvin\\.gemini\\antigravity\\scratch\\InternshipManagementSystem\\Views\\Guide\\AssignTask.cshtml",
       "TargetPath": "Views\\Guide\\AssignTask.cshtml",
       "FileKind": "mvc"
