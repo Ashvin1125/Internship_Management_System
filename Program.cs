@@ -29,7 +29,7 @@ builder.Services.AddHttpContextAccessor();
 
 // Step 1: Persist DataProtection Keys (Fixes session breaks on Render refresh)
 builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo("/app/keys"))
+    .PersistKeysToFileSystem(new DirectoryInfo("/var/data/keys"))
     .SetApplicationName("InternshipManagementSystem");
 
 if (builder.Environment.IsProduction())
@@ -202,6 +202,6 @@ app.MapControllerRoute(
 // Note: /api/health is handled by HealthController — no duplicate needed here
 
 // Step 4: Ensure keys directory exists
-Directory.CreateDirectory("/app/keys");
+Directory.CreateDirectory("/var/data/keys");
 
 app.Run();
