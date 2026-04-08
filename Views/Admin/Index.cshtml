@@ -5,79 +5,122 @@
 
 <div class="row g-4 mb-4">
     <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div><h6>Total Students</h6><h2 class="mb-0">@ViewBag.TotalStudents</h2></div>
-                <i class="bi bi-people-fill fs-1 text-white-50"></i>
-            </div>
-            <div class="card-footer d-flex justify-content-between">
-                <a class="small text-white stretched-link" asp-action="Students">View All</a>
-                <i class="bi bi-arrow-right text-white"></i>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div><h6>Total Guides</h6><h2 class="mb-0">@ViewBag.TotalGuides</h2></div>
-                <i class="bi bi-person-badge fs-1 text-white-50"></i>
-            </div>
-            <div class="card-footer d-flex justify-content-between">
-                <a class="small text-white stretched-link" asp-action="Guides">View All</a>
-                <i class="bi bi-arrow-right text-white"></i>
+        <div class="card card-stats h-100 border-start border-primary border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted small fw-bold text-uppercase mb-1">Total Students</p>
+                        <h2 class="mb-0 fw-bold">@ViewBag.TotalStudents</h2>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 p-2 rounded">
+                        <i class="bi bi-people-fill fs-4 text-primary"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a class="small text-primary fw-bold text-decoration-none stretched-link" asp-action="Students">View Students <i class="bi bi-arrow-right"></i></a>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-info text-white">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div><h6>Assignments</h6><h2 class="mb-0">@ViewBag.TotalAssignments</h2></div>
-                <i class="bi bi-link-45deg fs-1 text-white-50"></i>
-            </div>
-            <div class="card-footer d-flex justify-content-between">
-                <a class="small text-white stretched-link" asp-action="AssignGuide">Assign More</a>
-                <i class="bi bi-arrow-right text-white"></i>
+        <div class="card card-stats h-100 border-start border-success border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted small fw-bold text-uppercase mb-1">Total Guides</p>
+                        <h2 class="mb-0 fw-bold">@ViewBag.TotalGuides</h2>
+                    </div>
+                    <div class="bg-success bg-opacity-10 p-2 rounded">
+                        <i class="bi bi-person-badge fs-4 text-success"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a class="small text-success fw-bold text-decoration-none stretched-link" asp-action="Guides">View Guides <i class="bi bi-arrow-right"></i></a>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-warning text-dark">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div><h6>Unassigned Students</h6><h2 class="mb-0">@ViewBag.Unassigned</h2></div>
-                <i class="bi bi-person-x fs-1 opacity-50"></i>
+        <div class="card card-stats h-100 border-start border-info border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted small fw-bold text-uppercase mb-1">Assignments</p>
+                        <h2 class="mb-0 fw-bold">@ViewBag.TotalAssignments</h2>
+                    </div>
+                    <div class="bg-info bg-opacity-10 p-2 rounded">
+                        <i class="bi bi-link-45deg fs-4 text-info"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a class="small text-info fw-bold text-decoration-none stretched-link" asp-action="AssignGuide">Management <i class="bi bi-arrow-right"></i></a>
+                </div>
             </div>
-            <div class="card-footer d-flex justify-content-between">
-                <a class="small text-dark stretched-link" asp-action="AssignGuide">Assign Now</a>
-                <i class="bi bi-arrow-right"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stats h-100 border-start border-warning border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted small fw-bold text-uppercase mb-1">Unassigned</p>
+                        <h2 class="mb-0 fw-bold text-warning">@ViewBag.Unassigned</h2>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 p-2 rounded">
+                        <i class="bi bi-person-x fs-4 text-warning"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a class="small text-warning fw-bold text-decoration-none stretched-link" asp-action="AssignGuide">Assign Now <i class="bi bi-arrow-right"></i></a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header bg-white fw-semibold"><i class="bi bi-link me-2"></i>Guide Assignments</div>
+<div class="card card-stats border-0">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-link-45deg text-primary me-2"></i>Recent Guide Assignments</h5>
+    </div>
     <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr><th>Student</th><th>Guide</th><th>Department</th></tr>
-            </thead>
-            <tbody>
-                @if (assignments != null && assignments.Any())
-                {
-                    foreach (var a in assignments)
+        <div class="table-responsive">
+            <table class="table table-custom table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Student Details</th>
+                        <th>Assigned Guide</th>
+                        <th>Department</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (assignments != null && assignments.Any())
+                    {
+                        foreach (var a in assignments)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">@a.Student?.User?.Name</div>
+                                    <small class="text-muted">Enroll: @a.Student?.EnrollmentNumber</small>
+                                </td>
+                                <td>@a.Guide?.User?.Name</td>
+                                <td><span class="badge bg-light text-dark border">@a.Guide?.Department</span></td>
+                            </tr>
+                        }
+                    }
+                    else
                     {
                         <tr>
-                            <td>@a.Student?.User?.Name <small class="text-muted">(@a.Student?.EnrollmentNumber)</small></td>
-                            <td>@a.Guide?.User?.Name</td>
-                            <td>@a.Guide?.Department</td>
+                            <td colspan="3">
+                                <div class="empty-state">
+                                    <i class="bi bi-link-45deg"></i>
+                                    <h5>No Assignments Found</h5>
+                                    <p class="mb-0">Start linking students to guides in the management section.</p>
+                                </div>
+                            </td>
                         </tr>
                     }
-                }
-                else
-                {
-                    <tr><td colspan="3" class="text-center py-3 text-muted">No assignments yet.</td></tr>
-                }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

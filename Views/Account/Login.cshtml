@@ -2,38 +2,72 @@
 @{
     ViewData["Title"] = "Login";
     Layout = "_Layout";
+    var sid = ViewContext.RouteData.Values["sid"]?.ToString();
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white text-center py-3">
-                    <h4 class="mb-0">Internship Management</h4>
-                    <small>System Login</small>
+<div class="row justify-content-center align-items-center" style="min-height: 85vh;">
+    <div class="col-md-6 col-lg-5 col-xl-4">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="row g-0">
+                <div class="col-12 bg-primary py-4 text-center text-white position-relative overflow-hidden">
+                    <!-- Abstract Background Pattern -->
+                    <div class="position-absolute translate-middle opacity-25" style="top: -10%; left: 10%; width: 250px; height: 250px; background: white; filter: blur(70px); border-radius: 50%;"></div>
+                    
+                    <div class="position-relative">
+                        <div class="bg-white text-primary d-inline-flex align-items-center justify-content-center rounded-3 shadow-lg mb-2" style="width: 55px; height: 55px;">
+                            <i class="bi bi-mortarboard-fill fs-2"></i>
+                        </div>
+                        <h3 class="fw-bold mb-0" style="letter-spacing: 1px;">IMS PORTAL</h3>
+                        <p class="small text-white-50 text-uppercase tracking-widest mt-1 mb-0" style="font-size: 0.65rem;">Internship Management System</p>
+                    </div>
                 </div>
-                <div class="card-body p-4">
-                    <form asp-action="Login" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                
+                <div class="col-12 p-4 px-lg-5 py-lg-4">
+                    <div class="text-center mb-4">
+                        <h4 class="fw-bold text-dark mb-1">Welcome Back</h4>
+                        <p class="text-muted small mb-0">Secure portal access</p>
+                    </div>
+
+                    <form asp-action="Login" asp-route-sid="@sid" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-1 small mb-3 border-0 shadow-sm rounded-3"></div>
                         
-                        <div class="form-group mb-3">
-                            <label asp-for="Email" class="form-label">Email Address</label>
-                            <input asp-for="Email" class="form-control" placeholder="admin@example.com" autofocus />
-                            <span asp-validation-for="Email" class="text-danger"></span>
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label small fw-bold text-muted text-uppercase tracking-wider mb-1" style="font-size: 0.7rem;">Email Address</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light border-0"><i class="bi bi-envelope-fill text-muted"></i></span>
+                                <input asp-for="Email" class="form-control border-0 bg-light py-2" placeholder="name@university.edu" autofocus />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small" style="font-size: 0.7rem;"></span>
                         </div>
                         
-                        <div class="form-group mb-4">
-                            <label asp-for="Password" class="form-label">Password</label>
-                            <input asp-for="Password" class="form-control" placeholder="Password" />
-                            <span asp-validation-for="Password" class="text-danger"></span>
+                        <div class="mb-4">
+                            <label asp-for="Password" class="form-label small fw-bold text-muted text-uppercase tracking-wider mb-1" style="font-size: 0.7rem;">Password</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light border-0"><i class="bi bi-key-fill text-muted"></i></span>
+                                <input asp-for="Password" type="password" class="form-control border-0 bg-light py-2" placeholder="••••••••" />
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger small" style="font-size: 0.7rem;"></span>
                         </div>
                         
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">Log In</button>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-sm fw-bold shadow-sm py-2 rounded-3 transition-transform">
+                                <i class="bi bi-shield-lock-fill me-2"></i>Authenticate
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
+        
+        <div class="mt-4 text-center">
+            <p class="text-muted" style="font-size: 0.7rem;">© @DateTime.Now.Year Internship Management System</p>
+        </div>
     </div>
 </div>
+
+<style>
+    .tracking-widest { letter-spacing: 2px; }
+    .tracking-wider { letter-spacing: 1px; }
+    .transition-transform { transition: transform 0.2s; }
+    .transition-transform:active { transform: scale(0.98); }
+</style>

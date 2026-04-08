@@ -9,36 +9,68 @@
     <a asp-action="SubmitReport" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i> Submit Report</a>
 </div>
 
-<div class="card shadow-sm">
+<div class="card shadow-sm border-0">
     <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Week #</th>
-                    <th>Summary</th>
-                    <th>Status</th>
-                    <th>Guide Comment</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var r in Model ?? Enumerable.Empty<InternshipManagementSystem.Models.WeeklyReport>())
-                {
+        <div class="table-responsive">
+            <table class="table table-custom table-hover mb-0 align-middle">
+                <thead>
                     <tr>
-                        <td><span class="badge bg-secondary">Week @r.WeekNumber</span></td>
-                        <td>@(r.Summary.Length > 60 ? r.Summary.Substring(0, 60) + "..." : r.Summary)</td>
-                        <td>
-                            @if (r.Status == "Pending") { <span class="badge bg-warning text-dark">Pending</span> }
-                            else if (r.Status == "Approved") { <span class="badge bg-success">Approved</span> }
-                            else { <span class="badge bg-danger">Rejected</span> }
-                        </td>
-                        <td>@(r.GuideComment ?? "—")</td>
+                        <th>Report Week</th>
+                        <th>Progress Summary</th>
+                        <th>Status</th>
+                        <th class="px-3">Guide Feedback</th>
                     </tr>
-                }
-                @if (Model == null || !Model.Any())
-                {
-                    <tr><td colspan="4" class="text-center py-4 text-muted">No weekly reports submitted yet.</td></tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var r in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 fw-bold">
+                                        <i class="bi bi-calendar3 me-2"></i> Week @r.WeekNumber
+                                    </span>
+                                </td>
+                                <td class="small">@(r.Summary.Length > 80 ? r.Summary.Substring(0, 80) + "..." : r.Summary)</td>
+                                <td>
+                                    @if(r.Status == "Pending") { <span class="status-badge status-pending">Pending</span> }
+                                    else if(r.Status == "Approved") { <span class="status-badge status-approved">Approved</span> }
+                                    else { <span class="status-badge status-rejected">Rejected</span> }
+                                </td>
+                                <td class="px-3">
+                                    @if (!string.IsNullOrEmpty(r.GuideComment))
+                                    {
+                                        <div class="p-2 bg-light rounded shadow-none small text-muted border-start border-3 @(r.Status == "Approved" ? "border-success" : "border-danger")">
+                                            @r.GuideComment
+                                        </div>
+                                    }
+                                    else if (r.Status == "Pending")
+                                    {
+                                        <span class="text-muted small italic">Under review...</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">No feedback yet.</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty-state py-5">
+                                    <i class="bi bi-file-earmark-bar-graph text-muted display-4 d-block mb-3"></i>
+                                    <h5>No Reports Submitted</h5>
+                                    <p class="text-muted mb-0">Your weekly report history is empty. Submit your first progress report now.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

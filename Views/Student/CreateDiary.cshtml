@@ -4,24 +4,54 @@
     ViewData["Title"] = "Add Diary Entry";
 }
 
-<div class="card shadow-sm max-w-md">
-    <div class="card-header bg-white">
-        <h4 class="mb-0">New Diary Entry</h4>
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card form-card">
+            <div class="card-header bg-white py-3 border-bottom-0">
+                <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-journal-text me-2"></i>Daily Diary Entry</h5>
+                <p class="text-muted small mb-0">Record your work and progress for the day.</p>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="CreateDiary" method="post" data-ajax="true">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="mb-4">
+                        <label asp-for="WorkDate" class="form-label small fw-bold text-muted text-uppercase mb-1">Date of Work</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="bi bi-calendar-check text-muted"></i></span>
+                            <input asp-for="WorkDate" type="date" class="form-control border-0 bg-light py-2" value="@DateTime.Now.ToString("yyyy-MM-dd")" max="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label asp-for="WorkDescription" class="form-label small fw-bold text-muted text-uppercase mb-1">Work Description & Accomplishments</label>
+                        <textarea asp-for="WorkDescription" class="form-control border-0 bg-light py-2" rows="6" placeholder="What technical tasks did you complete today? Any challenges overcome?" required></textarea>
+                        <div class="form-text small italic mt-2">Maximum 500 characters.</div>
+                    </div>
+
+                    <div class="mt-5 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">
+                            <i class="bi bi-send-fill me-2"></i>Submit for Review
+                        </button>
+                        <a asp-action="Diary" class="btn btn-light px-4 py-2 fw-bold text-muted border">
+                            <i class="bi bi-arrow-left me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-        <form asp-action="CreateDiary" method="post">
-            <div class="mb-3">
-                <label asp-for="WorkDate" class="form-label text-muted">Work Date</label>
-                <input asp-for="WorkDate" type="date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
-            </div>
-            <div class="mb-4">
-                <label asp-for="WorkDescription" class="form-label text-muted">What did you work on today?</label>
-                <textarea asp-for="WorkDescription" class="form-control" rows="5" required></textarea>
-            </div>
-            <div class="d-flex justify-content-end gap-2">
-                <a asp-action="Diary" class="btn btn-outline-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Submit for Review</button>
-            </div>
-        </form>
+    
+    <div class="col-lg-5">
+        <div class="card border-0 bg-light p-4 rounded-4 mt-lg-0 mt-4">
+            <h6 class="fw-bold"><i class="bi bi-lightbulb-fill text-warning me-2"></i>Writing Tips</h6>
+            <p class="small text-muted mb-0">Good diary entries help your Guide track your growth technically.</p>
+            <hr class="my-3 opacity-10">
+            <ul class="small p-0 m-0 text-muted list-unstyled">
+                <li class="mb-2"><i class="bi bi-check2-circle text-success fs-5 align-middle"></i> Be specific about the tools used (e.g. .NET API, SQL).</li>
+                <li class="mb-2"><i class="bi bi-check2-circle text-success fs-5 align-middle"></i> Mention progress on assigned Tasks.</li>
+                <li><i class="bi bi-check2-circle text-success fs-5 align-middle"></i> State if you need help with any blocker.</li>
+            </ul>
+        </div>
     </div>
 </div>

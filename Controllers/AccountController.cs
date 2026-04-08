@@ -1,8 +1,11 @@
 using InternshipManagementSystem.Data;
+using InternshipManagementSystem.Models;
 using InternshipManagementSystem.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace InternshipManagementSystem.Controllers
@@ -27,6 +30,7 @@ namespace InternshipManagementSystem.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (ModelState.IsValid)
@@ -64,6 +68,95 @@ namespace InternshipManagementSystem.Controllers
         public IActionResult AccessDenied()
         {
             return View();
+        }
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult Profile()
+        {
+            var userIdStr = User.FindFirst("UserId")?.Value;
+            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId)) 
+                return RedirectToAction("Login");
+
+            var user = _context.Users.FirstOrDefault(u => u.UserId == userId);
+            if (user == null) return NotFound();
+
+            var model = new ProfileViewModel
+            {
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role
+            };
+
+            // Fetch role-specific details
+            if (user.Role == "Student")
+            {
+                var student = _context.Students.FirstOrDefault(s => s.UserId == userId);
+                if (student != null)
+                {
+                    model.Department = student.Department;
+                    model.EnrollmentOrDesignation = student.EnrollmentNumber;
+                }
+            }
+            else if (user.Role == "Guide")
+            {
+                var guide = _context.Guides.FirstOrDefault(g => g.UserId == userId);
+                if (guide != null)
+                {
+                    model.Department = guide.Department;
+                    model.EnrollmentOrDesignation = guide.Designation;
+                }
+            }
+
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Profile(ProfileViewModel model)
+        {
+            var userIdStr = User.FindFirst("UserId")?.Value;
+            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId)) 
+                return RedirectToAction("Login");
+
+            var user = _context.Users.Find(userId);
+            if (user == null) return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                try 
+                {
+                    user.Name = model.Name;
+                    if (!string.IsNullOrEmpty(model.NewPassword))
+                    {
+                        user.Password = model.NewPassword;
+                    }
+                    _context.SaveChanges();
+                    
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        return Json(new { success = true, message = "Profile updated successfully.", reload = true });
+
+                    TempData["Success"] = "Profile updated successfully.";
+                    return RedirectToAction("Profile");
+                }
+                catch (Exception ex)
+                {
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        return Json(new { success = false, message = "Update error: " + ex.Message });
+                    ModelState.AddModelError("", "Update error: " + ex.Message);
+                }
+            }
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = false, message = "Please check your inputs." });
+
+            // Restore metadata for the view if invalid
+            model.Role = user.Role;
+            if (user.Role == "Student") model.EnrollmentOrDesignation = _context.Students.FirstOrDefault(s => s.UserId == userId)?.EnrollmentNumber;
+            if (user.Role == "Guide") model.EnrollmentOrDesignation = _context.Guides.FirstOrDefault(g => g.UserId == userId)?.Designation;
+            
+            return View(model);
         }
 
         private IActionResult RedirectToDashboard(string role)

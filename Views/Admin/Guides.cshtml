@@ -9,32 +9,60 @@
     <a asp-action="CreateGuide" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i> Register Guide</a>
 </div>
 
-<div class="card shadow-sm">
+<div class="card shadow-sm border-0">
     <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Designation</th>
-                    <th>Department</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model ?? Enumerable.Empty<InternshipManagementSystem.Models.Guide>())
-                {
+        <div class="table-responsive">
+            <table class="table table-custom table-hover mb-0">
+                <thead>
                     <tr>
-                        <td>@item.User?.Name</td>
-                        <td>@item.User?.Email</td>
-                        <td>@item.Designation</td>
-                        <td>@item.Department</td>
+                        <th>Guide Name & Email</th>
+                        <th>Designation</th>
+                        <th>Department</th>
+                        <th class="text-end px-4">Actions</th>
                     </tr>
-                }
-                @if (Model == null || !Model.Any())
-                {
-                    <tr><td colspan="4" class="text-center py-4">No guides found.</td></tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-primary">@item.User?.Name</div>
+                                    <small class="text-muted">@item.User?.Email</small>
+                                </td>
+                                <td><span class="badge bg-info bg-opacity-10 text-info">@item.Designation</span></td>
+                                <td><span class="badge bg-light text-dark border">@item.Department</span></td>
+                                <td class="text-end px-4">
+                                    <div class="btn-group shadow-sm">
+                                        <a asp-action="GuideDetails" asp-route-id="@item.GuideId" class="btn btn-sm btn-outline-primary" title="View Profile">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <form asp-action="DeleteGuide" asp-route-id="@item.GuideId" method="post" onsubmit="return confirm('Are you sure you want to delete this guide? This will not delete their historical assignments.');" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Guide">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty-state">
+                                    <i class="bi bi-person-badge"></i>
+                                    <h5>No Guides Registered</h5>
+                                    <p>Click 'Register Guide' to add faculty or mentors to the system.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

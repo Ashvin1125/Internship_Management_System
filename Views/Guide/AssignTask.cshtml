@@ -9,55 +9,88 @@
     <h2>Assign Task to Student</h2>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <form asp-action="AssignTask" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card form-card">
+            <div class="card-header bg-white py-3 border-bottom-0">
+                <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-journal-plus me-2"></i>New Task Assignment</h5>
+                <p class="text-muted small mb-0">Assign a technical task or milestone to one of your students.</p>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="AssignTask" method="post" data-ajax="true">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-4"></div>
 
-            <div class="mb-3">
-                <label asp-for="StudentId" class="form-label">Select Student</label>
-                <select asp-for="StudentId" class="form-select" required>
-                    <option value="">-- Choose Student --</option>
-                    @if (students != null)
-                    {
-                        foreach (var s in students)
+                    <div class="mb-4">
+                        <label asp-for="StudentId" class="form-label small fw-bold text-muted text-uppercase mb-1">Select Student</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="bi bi-person-check text-muted"></i></span>
+                            <select asp-for="StudentId" class="form-select border-0 bg-light py-2" required disabled="@(students == null || !students.Any() ? "disabled" : null)">
+                                <option value="">-- Choose Student --</option>
+                                @if (students != null)
+                                {
+                                    foreach (var s in students)
+                                    {
+                                        <option value="@s.StudentId">@s.User?.Name (Enroll: @s.EnrollmentNumber)</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <span asp-validation-for="StudentId" class="text-danger small"></span>
+                        @if (students == null || !students.Any())
                         {
-                            <option value="@s.StudentId">@s.User?.Name (@s.EnrollmentNumber)</option>
+                            <div class="alert alert-warning py-2 small mt-3 mb-0">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i> No students are currently assigned to you.
+                            </div>
                         }
-                    }
-                </select>
-                <span asp-validation-for="StudentId" class="text-danger"></span>
-            </div>
+                    </div>
 
-            <div class="mb-3">
-                <label asp-for="Title" class="form-label">Task Title</label>
-                <input asp-for="Title" class="form-control" placeholder="e.g. Create a REST API module" required />
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
+                    <div class="mb-4">
+                        <label asp-for="Title" class="form-label small fw-bold text-muted text-uppercase mb-1">Task Title</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="bi bi-type-h1 text-muted"></i></span>
+                            <input asp-for="Title" class="form-control border-0 bg-light py-2" placeholder="e.g. Implement User Authentication" required />
+                        </div>
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
 
-            <div class="mb-3">
-                <label asp-for="Description" class="form-label">Description <small class="text-muted">(optional)</small></label>
-                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Detailed task instructions..."></textarea>
-            </div>
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label small fw-bold text-muted text-uppercase mb-1">Detailed Description</label>
+                        <textarea asp-for="Description" class="form-control border-0 bg-light py-2" rows="5" placeholder="Specify requirements, tools to use, and expected deliverables..."></textarea>
+                    </div>
 
-            <div class="mb-4">
-                <label asp-for="Deadline" class="form-label">Deadline</label>
-                <input asp-for="Deadline" type="date" class="form-control" required />
-                <span asp-validation-for="Deadline" class="text-danger"></span>
-            </div>
+                    <div class="mb-4">
+                        <label asp-for="Deadline" class="form-label small fw-bold text-muted text-uppercase mb-1">Submission Deadline</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="bi bi-calendar-event text-muted"></i></span>
+                            <input asp-for="Deadline" type="date" class="form-control border-0 bg-light py-2" required min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <span asp-validation-for="Deadline" class="text-danger small"></span>
+                    </div>
 
-            <div class="d-flex justify-content-end gap-2">
-                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i> Assign Task</button>
+                    <div class="mt-5 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-bold shadow-sm" @(students == null || !students.Any() ? "disabled" : "")>
+                            <i class="bi bi-send-check me-2"></i>Assign Now
+                        </button>
+                        <a asp-action="Index" class="btn btn-light px-4 py-2 fw-bold text-muted border">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </form>
             </div>
-
-            @if (students == null || !students.Any())
-            {
-                <div class="alert alert-warning mt-3">
-                    <i class="bi bi-exclamation-triangle me-1"></i>
-                    No students are assigned to you yet. Please contact the Admin.
-                </div>
-            }
-        </form>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card border-0 bg-light p-4 rounded-4 mt-lg-0 mt-4">
+            <h6 class="fw-bold"><i class="bi bi-info-circle-fill text-primary me-2"></i>Best Practices</h6>
+            <p class="small text-muted mb-0">Clear tasks improve student outcome. Consider including:</p>
+            <hr class="my-3 opacity-10">
+            <ul class="small p-0 m-0 text-muted list-unstyled">
+                <li class="mb-2"><i class="bi bi-dot text-primary fs-4 align-middle"></i> Specific tech stack to use.</li>
+                <li class="mb-2"><i class="bi bi-dot text-primary fs-4 align-middle"></i> Link to reference docs.</li>
+                <li><i class="bi bi-dot text-primary fs-4 align-middle"></i> Definition of 'Done'.</li>
+            </ul>
+        </div>
     </div>
 </div>
