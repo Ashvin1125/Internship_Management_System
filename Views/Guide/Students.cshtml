@@ -4,13 +4,13 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>My Assigned Students</h2>
+    <h2 class="fw-bold mb-0">My Assigned Students</h2>
 </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-custom table-hover mb-0">
+<div class="ims-card p-0 overflow-hidden">
+    <div class="ims-table-container">
+        <div class="table-responsive-ims">
+            <table class="ims-table">
                 <thead>
                     <tr>
                         <th>Enrollment</th>
@@ -30,17 +30,17 @@
                                     <div class="fw-bold">@item.Student?.User?.Name</div>
                                     <small class="text-muted">@item.Student?.User?.Email</small>
                                 </td>
-                                <td><span class="badge bg-info bg-opacity-10 text-info">Sem @item.Student?.Semester</span></td>
+                                <td><span class="ims-status ims-status-warning">Sem @item.Student?.Semester</span></td>
                                 <td class="text-end px-4">
-                                    <div class="btn-group shadow-sm">
-                                        <a asp-action="StudentDetails" asp-route-id="@item.StudentId" class="btn btn-sm btn-outline-primary" title="View Profile">
-                                            <i class="bi bi-eye"></i> Profile
+                                    <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                                        <a asp-action="StudentDetails" asp-route-id="@item.StudentId" class="btn btn-sm btn-outline-primary border-0 py-2 px-3" title="View Profile">
+                                            <i class="bi bi-eye me-1"></i> Profile
                                         </a>
-                                        <a asp-action="StudentDocuments" asp-route-studentId="@item.StudentId" class="btn btn-sm btn-outline-dark" title="View Documents">
-                                            <i class="bi bi-folder2"></i> Docs
+                                        <a asp-action="StudentDocuments" asp-route-studentId="@item.StudentId" class="btn btn-sm btn-outline-dark border-0 py-2 px-3" title="View Documents">
+                                            <i class="bi bi-folder2 me-1"></i> Docs
                                         </a>
-                                        <a asp-action="AssignTask" asp-route-studentId="@item.StudentId" class="btn btn-sm btn-outline-info" title="Assign Task">
-                                            <i class="bi bi-plus-circle"></i> Task
+                                        <a asp-action="AssignTask" asp-route-studentId="@item.StudentId" class="btn btn-sm btn-outline-info border-0 py-2 px-3" title="Assign Task">
+                                            <i class="bi bi-plus-circle me-1"></i> Task
                                         </a>
                                     </div>
                                 </td>
@@ -51,7 +51,7 @@
                     {
                         <tr>
                             <td colspan="4">
-                                <div class="empty-state">
+                                <div class="ims-empty-state">
                                     <i class="bi bi-people"></i>
                                     <h5>No Students Assigned</h5>
                                     <p>You haven't been assigned any students yet. Contact the Admin for assignments.</p>

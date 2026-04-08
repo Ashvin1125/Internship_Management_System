@@ -4,6 +4,7 @@ using InternshipManagementSystem.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using InternshipManagementSystem.Services;
 
 namespace InternshipManagementSystem.Controllers
 {
@@ -11,29 +12,36 @@ namespace InternshipManagementSystem.Controllers
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IStudentService _studentService;
+        private readonly IGuideService _guideService;
 
-        public AdminController(ApplicationDbContext context)
+        public AdminController(
+            ApplicationDbContext context, 
+            IStudentService studentService, 
+            IGuideService guideService)
         {
             _context = context;
+            _studentService = studentService;
+            _guideService = guideService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            ViewBag.TotalStudents = _context.Students.Count();
-            ViewBag.TotalGuides = _context.Guides.Count();
-            ViewBag.TotalAssignments = _context.GuideAssignments.Count();
-            var assignedStudentIds = _context.GuideAssignments.Select(g => g.StudentId).ToList();
-            ViewBag.Unassigned = _context.Students.Count(s => !assignedStudentIds.Contains(s.StudentId));
-            ViewBag.Assignments = _context.GuideAssignments
+            ViewBag.TotalStudents = await _context.Students.CountAsync();
+            ViewBag.TotalGuides = await _context.Guides.CountAsync();
+            ViewBag.TotalAssignments = await _context.GuideAssignments.CountAsync();
+            var assignedStudentIds = await _context.GuideAssignments.Select(g => g.StudentId).ToListAsync();
+            ViewBag.Unassigned = await _context.Students.CountAsync(s => !assignedStudentIds.Contains(s.StudentId));
+            ViewBag.Assignments = await _context.GuideAssignments
                 .Include(ga => ga.Student).ThenInclude(s => s.User)
                 .Include(ga => ga.Guide).ThenInclude(g => g.User)
-                .ToList();
+                .ToListAsync();
             return View();
         }
 
-        public IActionResult Students()
+        public async Task<IActionResult> Students()
         {
-            var students = _context.Students.Include(s => s.User).ToList();
+            var students = await _context.Students.Include(s => s.User).ToListAsync();
             return View(students);
         }
 
@@ -45,19 +53,19 @@ namespace InternshipManagementSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult CreateStudent(CreateStudentViewModel model)
+        public async Task<IActionResult> CreateStudent(CreateStudentViewModel model)
         {
             if (ModelState.IsValid)
             {
                 // Check if email already exists
-                if (_context.Users.Any(u => u.Email == model.Email))
+                if (await _context.Users.AnyAsync(u => u.Email == model.Email))
                 {
                     ModelState.AddModelError("Email", "Email is already registered.");
                     return View(model);
                 }
 
                 // Check if enrollment already exists
-                if (_context.Students.Any(s => s.EnrollmentNumber == model.EnrollmentNumber))
+                if (await _context.Students.AnyAsync(s => s.EnrollmentNumber == model.EnrollmentNumber))
                 {
                     ModelState.AddModelError("EnrollmentNumber", "Enrollment number is already registered.");
                     return View(model);
@@ -67,11 +75,11 @@ namespace InternshipManagementSystem.Controllers
                 {
                     var user = new User { Name = model.Name, Email = model.Email, Password = model.Password, Role = "Student" };
                     _context.Users.Add(user);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                     
                     var student = new Student { UserId = user.UserId, EnrollmentNumber = model.EnrollmentNumber, Department = model.Department, Semester = model.Semester };
                     _context.Students.Add(student);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                     
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Student registered successfully.", redirectUrl = Url.Action("Students") });
@@ -91,9 +99,9 @@ namespace InternshipManagementSystem.Controllers
             return View(model);
         }
 
-        public IActionResult Guides()
+        public async Task<IActionResult> Guides()
         {
-            var guides = _context.Guides.Include(g => g.User).ToList();
+            var guides = await _context.Guides.Include(g => g.User).ToListAsync();
             return View(guides);
         }
 
@@ -105,12 +113,12 @@ namespace InternshipManagementSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult CreateGuide(CreateGuideViewModel model)
+        public async Task<IActionResult> CreateGuide(CreateGuideViewModel model)
         {
             if (ModelState.IsValid)
             {
                 // Check if email already exists
-                if (_context.Users.Any(u => u.Email == model.Email))
+                if (await _context.Users.AnyAsync(u => u.Email == model.Email))
                 {
                     ModelState.AddModelError("Email", "Email is already registered.");
                     return View(model);
@@ -120,11 +128,11 @@ namespace InternshipManagementSystem.Controllers
                 {
                     var user = new User { Name = model.Name, Email = model.Email, Password = model.Password, Role = "Guide" };
                     _context.Users.Add(user);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                     
                     var guide = new Guide { UserId = user.UserId, Department = model.Department, Designation = model.Designation };
                     _context.Guides.Add(guide);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                     
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Guide registered successfully.", redirectUrl = Url.Action("Guides") });
@@ -145,29 +153,29 @@ namespace InternshipManagementSystem.Controllers
         }
 
         [HttpGet]
-        public IActionResult AssignGuide()
+        public async Task<IActionResult> AssignGuide()
         {
-            ViewBag.Guides = _context.Guides.Include(g => g.User).ToList();
-            var assignedStudentIds = _context.GuideAssignments.Select(ga => ga.StudentId).ToList();
-            ViewBag.Students = _context.Students.Include(s => s.User).Where(s => !assignedStudentIds.Contains(s.StudentId)).ToList();
+            ViewBag.Guides = await _context.Guides.Include(g => g.User).ToListAsync();
+            var assignedStudentIds = await _context.GuideAssignments.Select(ga => ga.StudentId).ToListAsync();
+            ViewBag.Students = await _context.Students.Include(s => s.User).Where(s => !assignedStudentIds.Contains(s.StudentId)).ToListAsync();
             
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AssignGuide(int guideId, int studentId)
+        public async Task<IActionResult> AssignGuide(int guideId, int studentId)
         {
             if (guideId > 0 && studentId > 0)
             {
                 // Check if already assigned
-                var exists = _context.GuideAssignments.Any(ga => ga.StudentId == studentId);
+                var exists = await _context.GuideAssignments.AnyAsync(ga => ga.StudentId == studentId);
                 if (!exists)
                 {
                     try 
                     {
                         _context.GuideAssignments.Add(new GuideAssignment { GuideId = guideId, StudentId = studentId });
-                        _context.SaveChanges();
+                        await _context.SaveChangesAsync();
                         TempData["Success"] = "Guide assigned successfully.";
                     }
                     catch (Exception ex)
@@ -193,17 +201,17 @@ namespace InternshipManagementSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteStudent(int id)
+        public async Task<IActionResult> DeleteStudent(int id)
         {
-            var student = _context.Students.Find(id);
+            var student = await _context.Students.FindAsync(id);
             if (student != null)
             {
                 try 
                 {
-                    var user = _context.Users.Find(student.UserId);
+                    var user = await _context.Users.FindAsync(student.UserId);
                     if (user != null) _context.Users.Remove(user);
                     _context.Students.Remove(student);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                     TempData["Success"] = "Student deleted successfully.";
                 }
                 catch (Exception ex)
@@ -216,17 +224,17 @@ namespace InternshipManagementSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteGuide(int id)
+        public async Task<IActionResult> DeleteGuide(int id)
         {
-            var guide = _context.Guides.Find(id);
+            var guide = await _context.Guides.FindAsync(id);
             if (guide != null)
             {
                 try 
                 {
-                    var user = _context.Users.Find(guide.UserId);
+                    var user = await _context.Users.FindAsync(guide.UserId);
                     if (user != null) _context.Users.Remove(user);
                     _context.Guides.Remove(guide);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                     TempData["Success"] = "Guide deleted successfully.";
                 }
                 catch (Exception ex)
@@ -237,34 +245,34 @@ namespace InternshipManagementSystem.Controllers
             return RedirectToAction("Guides");
         }
 
-        public IActionResult StudentDetails(int id)
+        public async Task<IActionResult> StudentDetails(int id)
         {
-            var student = _context.Students
+            var student = await _context.Students
                 .Include(s => s.User)
-                .FirstOrDefault(s => s.StudentId == id);
+                .FirstOrDefaultAsync(s => s.StudentId == id);
             
             if (student == null) return NotFound();
 
-            ViewBag.Internship = _context.InternshipDetails.FirstOrDefault(i => i.StudentId == id);
-            ViewBag.Assignment = _context.GuideAssignments
+            ViewBag.Internship = await _context.InternshipDetails.FirstOrDefaultAsync(i => i.StudentId == id);
+            ViewBag.Assignment = await _context.GuideAssignments
                 .Include(ga => ga.Guide).ThenInclude(g => g.User)
-                .FirstOrDefault(ga => ga.StudentId == id);
+                .FirstOrDefaultAsync(ga => ga.StudentId == id);
 
             return View(student);
         }
 
-        public IActionResult GuideDetails(int id)
+        public async Task<IActionResult> GuideDetails(int id)
         {
-            var guide = _context.Guides
+            var guide = await _context.Guides
                 .Include(g => g.User)
-                .FirstOrDefault(g => g.GuideId == id);
+                .FirstOrDefaultAsync(g => g.GuideId == id);
             
             if (guide == null) return NotFound();
 
-            ViewBag.AssignedStudents = _context.GuideAssignments
+            ViewBag.AssignedStudents = await _context.GuideAssignments
                 .Include(ga => ga.Student).ThenInclude(s => s.User)
                 .Where(ga => ga.GuideId == id)
-                .ToList();
+                .ToListAsync();
 
             return View(guide);
         }

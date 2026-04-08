@@ -35,11 +35,13 @@ The proposed IMS is a unified platform built on modern technologies that provide
 - **Notifications**: SweetAlert2 (Asynchronous Popups)
 - **Authentication**: Custom Claims-based Cookie Authentication
 
-## 7. System Architecture (.NET 8 MVC)
-The project follows the standard **Model-View-Controller (MVC)** architectural pattern:
-- **Models**: Represent the data structure and business logic (Database Entities).
-- **Views**: The user interface rendered using Razor syntax.
-- **Controllers**: Act as the "Brain" of the application, handling requests, interacting with models, and returning views or JSON responses.
+## 7. System Architecture (.NET 8 MVC + API Ready)
+The project follows a hybrid **Decoupled Architecture** bridging traditional MVC rendering with a React-ready API structure:
+- **Models**: EF Core domain entities tracking database structures.
+- **DTOs (Data Transfer Objects)**: Clean, sanitized JSON representations of Models tailored specifically for API endpoints.
+- **Service Layer**: Dedicated services (`StudentService`, `GuideService`, etc.) handle all business logic, removing it from controllers entirely.
+- **MVC Controllers**: Call the Service Layer to fetch data and return Razor Web Views (legacy compatibility).
+- **API Controllers**: Call the same Service Layer and return `ApiResponse<T>` JSON wrappers (for React interfaces).
 
 ## 8. Database Design (SQL Server Express)
 The database utilizes a **Relational Schema** managed via Entity Framework Core Migrations.
@@ -108,8 +110,11 @@ The database utilizes a **Relational Schema** managed via Entity Framework Core 
 - **Cross-Site Scripting (XSS)**: Razor's default HTML encoding.
 - **CSRF Protection**: Comprehensive implementation of `[ValidateAntiForgeryToken]`.
 
-## 15. Folder Structure (.NET MVC)
-- `/Controllers`: Logic handling for all modules.
+## 15. Folder Structure (.NET MVC + React Ready)
+- `/Controllers`: Handles routing and rendering for standard MVC Razor pages.
+- `/ApiControllers`: Exclusive endpoints serving React consumers via pure JSON.
+- `/Services`: Core business logic engines injected directly into all controller typologies.
+- `/DTOs`: Tailored structural payloads for sending safe data over API routes.
 - `/Models`: Entity classes (EF Core).
 - `/Views`: UI templates (Razor).
 - `/Data`: DbContext and Seeders.

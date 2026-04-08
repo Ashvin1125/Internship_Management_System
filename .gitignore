@@ -1,0 +1,21 @@
+## .NET build outputs
+bin/
+obj/
+out/
+
+## SQLite database files
+*.db
+*.db-shm
+*.db-wal
+
+## Uploaded files
+wwwroot/uploads/
+
+## VS / Rider
+.vs/
+.vscode/
+*.user
+*.suo
+
+## Sensitive
+appsettings.Development.json

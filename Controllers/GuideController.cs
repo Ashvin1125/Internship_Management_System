@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
+using InternshipManagementSystem.Services;
 
 namespace InternshipManagementSystem.Controllers
 {
@@ -15,84 +16,99 @@ namespace InternshipManagementSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _hostingEnvironment;
+        private readonly IGuideService _guideService;
+        private readonly IDailyDiaryService _diaryService;
+        private readonly ITaskService _taskService;
+        private readonly IDocumentService _documentService;
 
-        public GuideController(ApplicationDbContext context, IWebHostEnvironment hostingEnvironment)
+        public GuideController(
+            ApplicationDbContext context, 
+            IWebHostEnvironment hostingEnvironment,
+            IGuideService guideService,
+            IDailyDiaryService diaryService,
+            ITaskService taskService,
+            IDocumentService documentService)
         {
             _context = context;
             _hostingEnvironment = hostingEnvironment;
+            _guideService = guideService;
+            _diaryService = diaryService;
+            _taskService = taskService;
+            _documentService = documentService;
         }
 
-        private int GetGuideId()
+        private async Task<int> GetGuideIdAsync()
         {
-            var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
-            var guide = _context.Guides.FirstOrDefault(g => g.UserId == userId);
+            var userIdStr = User.FindFirst("UserId")?.Value;
+            if (string.IsNullOrEmpty(userIdStr)) return 0;
+
+            var userId = int.Parse(userIdStr);
+            var guide = await _context.Guides.FirstOrDefaultAsync(g => g.UserId == userId);
             return guide?.GuideId ?? 0;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var guideId = GetGuideId();
-            var assignedStudentIds = _context.GuideAssignments
-                .Where(g => g.GuideId == guideId).Select(g => g.StudentId).ToList();
+            var guideId = await GetGuideIdAsync();
+            var assignedStudentIds = await _context.GuideAssignments
+                .Where(g => g.GuideId == guideId).Select(g => g.StudentId).ToListAsync();
             ViewBag.AssignedStudents = assignedStudentIds.Count;
-            ViewBag.PendingDiaries = _context.DailyDiaries
-                .Count(d => assignedStudentIds.Contains(d.StudentId) && d.Status == "Pending");
-            ViewBag.TasksAssigned = _context.Tasks.Count(t => t.GuideId == guideId);
+            ViewBag.PendingDiaries = await _context.DailyDiaries
+                .CountAsync(d => assignedStudentIds.Contains(d.StudentId) && d.Status == "Pending");
+            ViewBag.TasksAssigned = await _context.Tasks.CountAsync(t => t.GuideId == guideId);
             return View();
         }
 
-        public IActionResult Students()
+        public async Task<IActionResult> Students()
         {
-            var guideId = GetGuideId();
-            var assignments = _context.GuideAssignments
+            var guideId = await GetGuideIdAsync();
+            var assignments = await _context.GuideAssignments
                 .Include(ga => ga.Student)
                 .ThenInclude(s => s.User)
                 .Where(ga => ga.GuideId == guideId)
-                .ToList();
+                .ToListAsync();
             return View(assignments);
         }
         
-        public IActionResult Diaries()
+        public async Task<IActionResult> Diaries()
         {
-            var guideId = GetGuideId();
+            var guideId = await GetGuideIdAsync();
             
-            // Get student IDs assigned to this guide
-            var assignedStudentIds = _context.GuideAssignments
+            var assignedStudentIds = await _context.GuideAssignments
                 .Where(ga => ga.GuideId == guideId)
                 .Select(ga => ga.StudentId)
-                .ToList();
+                .ToListAsync();
 
-            var diaries = _context.DailyDiaries
+            var diaries = await _context.DailyDiaries
                 .Include(d => d.Student)
                 .ThenInclude(s => s.User)
                 .Where(d => assignedStudentIds.Contains(d.StudentId))
                 .OrderByDescending(d => d.WorkDate)
-                .ToList();
+                .ToListAsync();
                 
             return View(diaries);
         }
         [HttpGet]
-        public IActionResult AssignTask()
+        public async Task<IActionResult> AssignTask()
         {
-            var guideId = GetGuideId();
-            var students = _context.GuideAssignments
+            var guideId = await GetGuideIdAsync();
+            var students = await _context.GuideAssignments
                 .Include(ga => ga.Student).ThenInclude(s => s.User)
                 .Where(ga => ga.GuideId == guideId)
                 .Select(ga => ga.Student)
-                .ToList();
+                .ToListAsync();
             ViewBag.Students = students;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AssignTask(AssignTaskViewModel model)
+        public async Task<IActionResult> AssignTask(AssignTaskViewModel model)
         {
-            var guideId = GetGuideId();
+            var guideId = await GetGuideIdAsync();
             if (guideId == 0) return RedirectToAction("Login", "Account");
 
-            // Security: Check if student is assigned to this guide
-            var isAssigned = _context.GuideAssignments.Any(ga => ga.GuideId == guideId && ga.StudentId == model.StudentId);
+            var isAssigned = await _context.GuideAssignments.AnyAsync(ga => ga.GuideId == guideId && ga.StudentId == model.StudentId);
             if (!isAssigned)
             {
                 TempData["Error"] = "Unauthorized: Student is not assigned to you.";
@@ -114,7 +130,7 @@ namespace InternshipManagementSystem.Controllers
                 try 
                 {
                     _context.Tasks.Add(task);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Task assigned successfully.", redirectUrl = Url.Action("Tasks") });
@@ -132,33 +148,32 @@ namespace InternshipManagementSystem.Controllers
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 return Json(new { success = false, message = "Please check your inputs and try again." });
             
-            var students2 = _context.GuideAssignments
+            var students2 = await _context.GuideAssignments
                 .Include(ga => ga.Student).ThenInclude(s => s.User)
                 .Where(ga => ga.GuideId == guideId)
                 .Select(ga => ga.Student)
-                .ToList();
+                .ToListAsync();
             ViewBag.Students = students2;
             return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ApproveDiary(int diaryId, string action, string comment)
+        public async Task<IActionResult> ApproveDiary(int diaryId, string action, string comment)
         {
-            var guideId = GetGuideId();
-            var diary = _context.DailyDiaries.Include(d => d.Student).FirstOrDefault(d => d.DiaryId == diaryId);
+            var guideId = await GetGuideIdAsync();
+            var diary = await _context.DailyDiaries.Include(d => d.Student).FirstOrDefaultAsync(d => d.DiaryId == diaryId);
             
             if (diary != null)
             {
-                // Security: Verify student belongs to this guide
-                var isAssigned = _context.GuideAssignments.Any(ga => ga.GuideId == guideId && ga.StudentId == diary.StudentId);
+                var isAssigned = await _context.GuideAssignments.AnyAsync(ga => ga.GuideId == guideId && ga.StudentId == diary.StudentId);
                 if (!isAssigned) return Unauthorized();
 
                 try 
                 {
                     diary.Status = action == "Approve" ? "Approved" : "Rejected";
                     diary.GuideComment = comment;
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                     
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = $"Diary {diary.Status.ToLower()} successfully.", reload = true });
@@ -175,58 +190,56 @@ namespace InternshipManagementSystem.Controllers
             return RedirectToAction("Diaries");
         }
 
-        public IActionResult Tasks()
+        public async Task<IActionResult> Tasks()
         {
-            var guideId = GetGuideId();
-            var tasks = _context.Tasks
+            var guideId = await GetGuideIdAsync();
+            var tasks = await _context.Tasks
                 .Include(t => t.Student)
                 .ThenInclude(s => s.User)
                 .Where(t => t.GuideId == guideId)
                 .OrderByDescending(t => t.Deadline)
-                .ToList();
+                .ToListAsync();
             return View(tasks);
         }
 
-        public IActionResult StudentDocuments(int studentId)
+        public async Task<IActionResult> StudentDocuments(int studentId)
         {
-            var guideId = GetGuideId();
-            var assignment = _context.GuideAssignments
-                .FirstOrDefault(ga => ga.GuideId == guideId && ga.StudentId == studentId);
+            var guideId = await GetGuideIdAsync();
+            var assignment = await _context.GuideAssignments
+                .FirstOrDefaultAsync(ga => ga.GuideId == guideId && ga.StudentId == studentId);
             
             if (assignment == null) return Unauthorized();
 
-            var student = _context.Students.Include(s => s.User).FirstOrDefault(s => s.StudentId == studentId);
-            var docs = _context.Documents.Where(d => d.StudentId == studentId).ToList();
+            var student = await _context.Students.Include(s => s.User).FirstOrDefaultAsync(s => s.StudentId == studentId);
+            var docs = await _context.Documents.Where(d => d.StudentId == studentId).ToListAsync();
 
             ViewBag.StudentName = student?.User?.Name;
             return View(docs);
         }
 
-        public IActionResult DownloadDocument(int id)
+        public async Task<IActionResult> DownloadDocument(int id)
         {
-            var guideId = GetGuideId();
-            var doc = _context.Documents.Include(d => d.Student).FirstOrDefault(d => d.DocumentId == id);
+            var guideId = await GetGuideIdAsync();
+            var doc = await _context.Documents.Include(d => d.Student).FirstOrDefaultAsync(d => d.DocumentId == id);
             if (doc == null) return NotFound();
 
-            // Security: Verify if this guide is assigned to the student who owns this document
-            var isAssigned = _context.GuideAssignments.Any(ga => ga.GuideId == guideId && ga.StudentId == doc.StudentId);
+            var isAssigned = await _context.GuideAssignments.AnyAsync(ga => ga.GuideId == guideId && ga.StudentId == doc.StudentId);
             if (!isAssigned) return Unauthorized();
 
             var filePath = Path.Combine(_hostingEnvironment.WebRootPath, "uploads", doc.FilePath);
             if (!System.IO.File.Exists(filePath)) return NotFound();
 
-            var fileBytes = System.IO.File.ReadAllBytes(filePath);
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(fileBytes, "application/octet-stream", doc.FileName);
         }
 
-        public IActionResult StudentDetails(int id)
+        public async Task<IActionResult> StudentDetails(int id)
         {
-            var guideId = GetGuideId();
+            var guideId = await GetGuideIdAsync();
             if (guideId == 0) return RedirectToAction("Login", "Account");
 
-            // Security: Verify student belongs to this guide
-            var assignment = _context.GuideAssignments
-                .FirstOrDefault(ga => ga.GuideId == guideId && ga.StudentId == id);
+            var assignment = await _context.GuideAssignments
+                .FirstOrDefaultAsync(ga => ga.GuideId == guideId && ga.StudentId == id);
             
             if (assignment == null) 
             {
@@ -234,16 +247,16 @@ namespace InternshipManagementSystem.Controllers
                 return RedirectToAction("Students");
             }
 
-            var student = _context.Students
+            var student = await _context.Students
                 .Include(s => s.User)
-                .FirstOrDefault(s => s.StudentId == id);
+                .FirstOrDefaultAsync(s => s.StudentId == id);
             
             if (student == null) return NotFound();
 
-            ViewBag.Internship = _context.InternshipDetails.FirstOrDefault(i => i.StudentId == id);
-            ViewBag.TotalDiaries = _context.DailyDiaries.Count(d => d.StudentId == id);
-            ViewBag.PendingDiaries = _context.DailyDiaries.Count(d => d.StudentId == id && d.Status == "Pending");
-            ViewBag.TotalTasks = _context.Tasks.Count(t => t.StudentId == id && t.GuideId == guideId);
+            ViewBag.Internship = await _context.InternshipDetails.FirstOrDefaultAsync(i => i.StudentId == id);
+            ViewBag.TotalDiaries = await _context.DailyDiaries.CountAsync(d => d.StudentId == id);
+            ViewBag.PendingDiaries = await _context.DailyDiaries.CountAsync(d => d.StudentId == id && d.Status == "Pending");
+            ViewBag.TotalTasks = await _context.Tasks.CountAsync(t => t.StudentId == id && t.GuideId == guideId);
 
             return View(student);
         }

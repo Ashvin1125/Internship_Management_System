@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InternshipManagementSystem.Models
 {
-    public class DailyDiary
+    public class DailyDiary : AuditableEntity
     {
         [Key]
         public int DiaryId { get; set; }

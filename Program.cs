@@ -3,14 +3,46 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using InternshipManagementSystem.Helpers;
 using Microsoft.AspNetCore.Http;
+using InternshipManagementSystem.Services;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Step 4: Dynamic Port Binding (for Render)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
+// Step 7: Logging (Enable default ASP.NET logging)
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+if (builder.Environment.IsProduction())
+{
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
+else
+{
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
+
+// Step 6: Enable HTTPS redirection safe for proxy
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
+
+builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<IGuideService, GuideService>();
+builder.Services.AddScoped<IDailyDiaryService, DailyDiaryService>();
+builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -21,13 +53,62 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.CookieManager = new MultiSessionCookieManager();
     });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Needed if relying on existing Cookies/Auth
+    });
+});
+
 var app = builder.Build();
 
+// Step 3: Ensure Upload Directory Exists
+var webRoot = app.Environment.WebRootPath ?? Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+var uploadsPath = Path.Combine(webRoot, "uploads");
+if (!Directory.Exists(uploadsPath))
+{
+    Directory.CreateDirectory(uploadsPath);
+}
+
+// Step 2 & 7: Database Initialization and Logging
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    DbSeeder.Initialize(services);
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    try 
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        if (app.Environment.IsProduction())
+        {
+            // SQLite: Use EnsureCreated (avoids SQL Server-specific migration scripts)
+            // This creates the schema directly from the EF model.
+            logger.LogInformation("Production environment: ensuring SQLite database is created...");
+            context.Database.EnsureCreated();
+            logger.LogInformation("SQLite database ready.");
+        }
+        else
+        {
+            // SQL Server: Apply pending migrations
+            logger.LogInformation("Development environment: applying pending SQL Server migrations...");
+            context.Database.Migrate();
+            logger.LogInformation("Migrations applied successfully.");
+        }
+        
+        DbSeeder.Initialize(services);
+        logger.LogInformation("Database seeding complete.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while initializing the database.");
+    }
 }
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseMiddleware<ApiLoggingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -37,11 +118,19 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Step 6: Forward headers (must be early in pipeline)
+app.UseForwardedHeaders();
+
+// Only redirect HTTPS in development; in production Render/Railway handle TLS at the proxy level
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+// Step 5: Production Middleware Ordering
 app.UseStaticFiles();
-
 app.UseRouting();
-
+app.UseCors("ReactPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -86,5 +175,7 @@ app.Use(async (context, next) =>
 app.MapControllerRoute(
     name: "default",
     pattern: "{sid}/{controller=Account}/{action=Login}/{id?}");
+
+// Note: /api/health is handled by HealthController — no duplicate needed here
 
 app.Run();

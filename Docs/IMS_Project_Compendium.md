@@ -35,12 +35,14 @@ The IMS provides a digital ecosystem where students can track their daily progre
 
 | Component | Technology | Role |
 | :--- | :--- | :--- |
-| **Framework** | ASP.NET Core 8 MVC | Core Application Logic |
+| **Framework** | ASP.NET Core 8 | Dual presentation base (MVC & Web API) |
+| **Business Logic** | Decoupled Service Layer | Injected operations independent of controllers |
 | **Database** | SQL Server | Data Persistence |
 | **ORM** | Entity Framework Core | Database Interaction |
 | **Authentication** | Stateless Cookie-Based RBAC | Secure Access + Tab Isolation |
 | **UX Model** | Zero-Refresh AJAX | Instant UI Feedback |
 | **Tab Isolation** | URL-based SID | Stateless Multi-User Support |
+| **Front-End API** | JSON Web API `/api/` | Stateless DTO responses ready for React clients |
 | **UI Styling** | Bootstrap 5 + Vanilla CSS | Responsive, Premium Design |
 | **Icons** | Bootstrap Icons | Visual Context |
 | **Notifications** | SweetAlert2 | Premium User Feedback |

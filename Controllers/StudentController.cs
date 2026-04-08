@@ -8,6 +8,7 @@ using System.Security.Claims;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using InternshipManagementSystem.Services;
 
 namespace InternshipManagementSystem.Controllers
 {
@@ -16,38 +17,55 @@ namespace InternshipManagementSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _hostingEnvironment;
+        private readonly IStudentService _studentService;
+        private readonly IDailyDiaryService _diaryService;
+        private readonly ITaskService _taskService;
+        private readonly IDocumentService _documentService;
 
-        public StudentController(ApplicationDbContext context, IWebHostEnvironment hostingEnvironment)
+        public StudentController(
+            ApplicationDbContext context, 
+            IWebHostEnvironment hostingEnvironment,
+            IStudentService studentService,
+            IDailyDiaryService diaryService,
+            ITaskService taskService,
+            IDocumentService documentService)
         {
             _context = context;
             _hostingEnvironment = hostingEnvironment;
+            _studentService = studentService;
+            _diaryService = diaryService;
+            _taskService = taskService;
+            _documentService = documentService;
         }
 
-        private int GetStudentId()
+        private async Task<int> GetStudentIdAsync()
         {
-            var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
-            var student = _context.Students.FirstOrDefault(s => s.UserId == userId);
+            var userIdStr = User.FindFirst("UserId")?.Value;
+            if (string.IsNullOrEmpty(userIdStr)) return 0;
+            
+            var userId = int.Parse(userIdStr);
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userId);
             return student?.StudentId ?? 0;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var studentId = GetStudentId();
-            ViewBag.TotalDiaries = _context.DailyDiaries.Count(d => d.StudentId == studentId);
-            ViewBag.TasksAssigned = _context.Tasks.Count(t => t.StudentId == studentId);
-            ViewBag.PendingTasks = _context.Tasks.Count(t => t.StudentId == studentId && t.Status != "Completed");
-            ViewBag.HasInternship = _context.InternshipDetails.Any(i => i.StudentId == studentId);
+            var studentId = await GetStudentIdAsync();
+            ViewBag.TotalDiaries = await _context.DailyDiaries.CountAsync(d => d.StudentId == studentId);
+            ViewBag.TasksAssigned = await _context.Tasks.CountAsync(t => t.StudentId == studentId);
+            ViewBag.PendingTasks = await _context.Tasks.CountAsync(t => t.StudentId == studentId && t.Status != "Completed");
+            ViewBag.HasInternship = await _context.InternshipDetails.AnyAsync(i => i.StudentId == studentId);
             return View();
         }
 
         // ── Daily Diary ──────────────────────────────────────────────
-        public IActionResult Diary()
+        public async Task<IActionResult> Diary()
         {
-            var studentId = GetStudentId();
-            var diaries = _context.DailyDiaries
+            var studentId = await GetStudentIdAsync();
+            var diaries = await _context.DailyDiaries
                 .Where(d => d.StudentId == studentId)
                 .OrderByDescending(d => d.WorkDate)
-                .ToList();
+                .ToListAsync();
             return View(diaries);
         }
 
@@ -59,9 +77,9 @@ namespace InternshipManagementSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult CreateDiary(DailyDiary model)
+        public async Task<IActionResult> CreateDiary(DailyDiary model)
         {
-            var studentId = GetStudentId();
+            var studentId = await GetStudentIdAsync();
             if (studentId == 0) return RedirectToAction("Login", "Account");
             
             model.StudentId = studentId;
@@ -74,7 +92,7 @@ namespace InternshipManagementSystem.Controllers
                 try 
                 {
                     _context.DailyDiaries.Add(model);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Daily diary submitted successfully.", redirectUrl = Url.Action("Diary") });
@@ -95,31 +113,32 @@ namespace InternshipManagementSystem.Controllers
         }
 
         // ── Tasks ─────────────────────────────────────────────────────
-        public IActionResult Tasks()
+        public async Task<IActionResult> Tasks()
         {
-            var studentId = GetStudentId();
-            var tasks = _context.Tasks
-                .Include(t => t.Guide).ThenInclude(g => g.User)
+            var studentId = await GetStudentIdAsync();
+            var tasks = await _context.Tasks
+                .Include(t => t.Guide)
+                .ThenInclude(g => g.User)
                 .Where(t => t.StudentId == studentId)
                 .OrderBy(t => t.Deadline)
-                .ToList();
+                .ToListAsync();
             return View(tasks);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult UpdateTaskStatus(int taskId, string status)
+        public async Task<IActionResult> UpdateTaskStatus(int taskId, string status)
         {
-            var studentId = GetStudentId();
+            var studentId = await GetStudentIdAsync();
             if (studentId == 0) return RedirectToAction("Login", "Account");
 
-            var task = _context.Tasks.FirstOrDefault(t => t.TaskId == taskId && t.StudentId == studentId);
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.TaskId == taskId && t.StudentId == studentId);
             if (task != null)
             {
                 try 
                 {
                     task.Status = status;
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                     
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Task status updated.", reload = true });
@@ -137,27 +156,27 @@ namespace InternshipManagementSystem.Controllers
         }
 
         // ── Internship Details ────────────────────────────────────────
-        public IActionResult Internship()
+        public async Task<IActionResult> Internship()
         {
-            var studentId = GetStudentId();
-            var internship = _context.InternshipDetails.FirstOrDefault(i => i.StudentId == studentId);
+            var studentId = await GetStudentIdAsync();
+            var internship = await _context.InternshipDetails.FirstOrDefaultAsync(i => i.StudentId == studentId);
             return View(internship);
         }
 
         [HttpGet]
-        public IActionResult AddInternship()
+        public async Task<IActionResult> AddInternship()
         {
-            var studentId = GetStudentId();
-            var existing = _context.InternshipDetails.FirstOrDefault(i => i.StudentId == studentId);
+            var studentId = await GetStudentIdAsync();
+            var existing = await _context.InternshipDetails.FirstOrDefaultAsync(i => i.StudentId == studentId);
             if (existing != null) return RedirectToAction("Internship");
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddInternship(InternshipDetailsViewModel model)
+        public async Task<IActionResult> AddInternship(InternshipDetailsViewModel model)
         {
-            var studentId = GetStudentId();
+            var studentId = await GetStudentIdAsync();
             if (studentId == 0) return RedirectToAction("Login", "Account");
 
             if (ModelState.IsValid)
@@ -175,7 +194,7 @@ namespace InternshipManagementSystem.Controllers
                         Description = model.Description
                     };
                     _context.InternshipDetails.Add(detail);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Internship details added.", redirectUrl = Url.Action("Internship") });
@@ -196,13 +215,13 @@ namespace InternshipManagementSystem.Controllers
         }
 
         // ── Weekly Reports ────────────────────────────────────────────
-        public IActionResult WeeklyReports()
+        public async Task<IActionResult> WeeklyReports()
         {
-            var studentId = GetStudentId();
-            var reports = _context.WeeklyReports
+            var studentId = await GetStudentIdAsync();
+            var reports = await _context.WeeklyReports
                 .Where(r => r.StudentId == studentId)
                 .OrderByDescending(r => r.WeekNumber)
-                .ToList();
+                .ToListAsync();
             return View(reports);
         }
 
@@ -214,9 +233,9 @@ namespace InternshipManagementSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SubmitReport(WeeklyReport model)
+        public async Task<IActionResult> SubmitReport(WeeklyReport model)
         {
-            var studentId = GetStudentId();
+            var studentId = await GetStudentIdAsync();
             if (studentId == 0) return RedirectToAction("Login", "Account");
             
             model.StudentId = studentId;
@@ -229,7 +248,7 @@ namespace InternshipManagementSystem.Controllers
                 try 
                 {
                     _context.WeeklyReports.Add(model);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Weekly report submitted.", redirectUrl = Url.Action("WeeklyReports") });
@@ -250,13 +269,13 @@ namespace InternshipManagementSystem.Controllers
         }
 
         // ── Documents ────────────────────────────────────────────────
-        public IActionResult Documents()
+        public async Task<IActionResult> Documents()
         {
-            var studentId = GetStudentId();
-            var docs = _context.Documents
+            var studentId = await GetStudentIdAsync();
+            var docs = await _context.Documents
                 .Where(d => d.StudentId == studentId)
                 .OrderByDescending(d => d.UploadDate)
-                .ToList();
+                .ToListAsync();
             return View(docs);
         }
 
@@ -265,7 +284,7 @@ namespace InternshipManagementSystem.Controllers
         [RequestSizeLimit(52428800)] // 50MB limit
         public async Task<IActionResult> UploadDocument(IFormFile file)
         {
-            var studentId = GetStudentId();
+            var studentId = await GetStudentIdAsync();
             if (studentId == 0 || file == null || file.Length == 0) 
                 return RedirectToAction("Documents");
 
@@ -319,27 +338,27 @@ namespace InternshipManagementSystem.Controllers
             return RedirectToAction("Documents");
         }
 
-        public IActionResult DownloadDocument(int id)
+        public async Task<IActionResult> DownloadDocument(int id)
         {
-            var studentId = GetStudentId();
-            var doc = _context.Documents.FirstOrDefault(d => d.DocumentId == id && d.StudentId == studentId);
+            var studentId = await GetStudentIdAsync();
+            var doc = await _context.Documents.FirstOrDefaultAsync(d => d.DocumentId == id && d.StudentId == studentId);
             if (doc == null) return Unauthorized();
 
             var filePath = Path.Combine(_hostingEnvironment.WebRootPath, "uploads", doc.FilePath);
             if (!System.IO.File.Exists(filePath)) return NotFound();
 
-            var fileBytes = System.IO.File.ReadAllBytes(filePath);
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(fileBytes, "application/octet-stream", doc.FileName);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteDocument(int id)
+        public async Task<IActionResult> DeleteDocument(int id)
         {
-            var studentId = GetStudentId();
+            var studentId = await GetStudentIdAsync();
             if (studentId == 0) return Unauthorized();
 
-            var doc = _context.Documents.FirstOrDefault(d => d.DocumentId == id && d.StudentId == studentId);
+            var doc = await _context.Documents.FirstOrDefaultAsync(d => d.DocumentId == id && d.StudentId == studentId);
             if (doc != null)
             {
                 try 
@@ -348,7 +367,7 @@ namespace InternshipManagementSystem.Controllers
                     if (System.IO.File.Exists(filePath)) System.IO.File.Delete(filePath);
                     
                     _context.Documents.Remove(doc);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                     TempData["Success"] = "Document deleted.";
                 }
                 catch (Exception ex)

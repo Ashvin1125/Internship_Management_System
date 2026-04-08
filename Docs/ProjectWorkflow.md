@@ -34,9 +34,10 @@ The system is built with role-based access control (RBAC) featuring three primar
 ---
 
 ## 3. Technical Architecture
-- **Framework**: ASP.NET Core 8 MVC (Model-View-Controller)
+- **Framework**: ASP.NET Core 8 with a Decoupled Service Layer for API Readiness.
+- **Frontend Model**: Hybrid - Razor Views for current administrative operations with independent `React-Ready` API endpoints natively serving standard JSON payloads via stateless DTOs.
 - **Database**: Microsoft SQL Server accessed via **Entity Framework Core**.
-- **Authentication**: Secure **Cookie-based Authentication** with Role-based access control.
+- **Authentication**: Secure **Cookie-based Authentication** scoped to support both standard Web Views and isolated React Web API calls natively.
 - **Security & Robustness**: 
     - **Stateless Multi-Session Tab Support**: Unique URL-based session isolation (`sid`) allows multiple users in different tabs without collisions.
     - **Isolated Cookie Scoping**: Custom `ICookieManager` that prefixes authentication cookies with the session ID from the URL.

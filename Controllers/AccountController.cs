@@ -13,10 +13,12 @@ namespace InternshipManagementSystem.Controllers
     public class AccountController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(ApplicationDbContext context)
+        public AccountController(ApplicationDbContext context, ILogger<AccountController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -35,7 +37,7 @@ namespace InternshipManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = _context.Users.FirstOrDefault(u => u.Email == model.Email && u.Password == model.Password);
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email && u.Password == model.Password);
                 if (user != null)
                 {
                     var claims = new List<Claim>
@@ -52,8 +54,11 @@ namespace InternshipManagementSystem.Controllers
                         CookieAuthenticationDefaults.AuthenticationScheme, 
                         new ClaimsPrincipal(claimsIdentity));
 
+                    _logger.LogInformation("User {Email} logged in successfully as {Role}.", user.Email, user.Role);
                     return RedirectToDashboard(user.Role);
                 }
+                
+                _logger.LogWarning("Invalid login attempt for email {Email}.", model.Email);
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             }
             return View(model);
@@ -72,13 +77,13 @@ namespace InternshipManagementSystem.Controllers
 
         [Authorize]
         [HttpGet]
-        public IActionResult Profile()
+        public async Task<IActionResult> Profile()
         {
             var userIdStr = User.FindFirst("UserId")?.Value;
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId)) 
                 return RedirectToAction("Login");
 
-            var user = _context.Users.FirstOrDefault(u => u.UserId == userId);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
             if (user == null) return NotFound();
 
             var model = new ProfileViewModel
@@ -91,7 +96,7 @@ namespace InternshipManagementSystem.Controllers
             // Fetch role-specific details
             if (user.Role == "Student")
             {
-                var student = _context.Students.FirstOrDefault(s => s.UserId == userId);
+                var student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userId);
                 if (student != null)
                 {
                     model.Department = student.Department;
@@ -100,7 +105,7 @@ namespace InternshipManagementSystem.Controllers
             }
             else if (user.Role == "Guide")
             {
-                var guide = _context.Guides.FirstOrDefault(g => g.UserId == userId);
+                var guide = await _context.Guides.FirstOrDefaultAsync(g => g.UserId == userId);
                 if (guide != null)
                 {
                     model.Department = guide.Department;
@@ -114,13 +119,13 @@ namespace InternshipManagementSystem.Controllers
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Profile(ProfileViewModel model)
+        public async Task<IActionResult> Profile(ProfileViewModel model)
         {
             var userIdStr = User.FindFirst("UserId")?.Value;
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId)) 
                 return RedirectToAction("Login");
 
-            var user = _context.Users.Find(userId);
+            var user = await _context.Users.FindAsync(userId);
             if (user == null) return NotFound();
 
             if (ModelState.IsValid)
@@ -132,7 +137,7 @@ namespace InternshipManagementSystem.Controllers
                     {
                         user.Password = model.NewPassword;
                     }
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                     
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Profile updated successfully.", reload = true });
@@ -153,8 +158,8 @@ namespace InternshipManagementSystem.Controllers
 
             // Restore metadata for the view if invalid
             model.Role = user.Role;
-            if (user.Role == "Student") model.EnrollmentOrDesignation = _context.Students.FirstOrDefault(s => s.UserId == userId)?.EnrollmentNumber;
-            if (user.Role == "Guide") model.EnrollmentOrDesignation = _context.Guides.FirstOrDefault(g => g.UserId == userId)?.Designation;
+            if (user.Role == "Student") model.EnrollmentOrDesignation = (await _context.Students.FirstOrDefaultAsync(s => s.UserId == userId))?.EnrollmentNumber;
+            if (user.Role == "Guide") model.EnrollmentOrDesignation = (await _context.Guides.FirstOrDefaultAsync(g => g.UserId == userId))?.Designation;
             
             return View(model);
         }

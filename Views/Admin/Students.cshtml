@@ -5,14 +5,14 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Students List</h2>
-    <a asp-action="CreateStudent" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i> Register Student</a>
+    <h2 class="fw-bold mb-0">Students List</h2>
+    <a asp-action="CreateStudent" class="ims-btn ims-btn-primary"><i class="bi bi-person-plus me-1"></i> Register Student</a>
 </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-custom table-hover mb-0">
+<div class="ims-card p-0 overflow-hidden">
+    <div class="ims-table-container">
+        <div class="table-responsive-ims">
+            <table class="ims-table">
                 <thead>
                     <tr>
                         <th>Enrollment</th>
@@ -34,17 +34,17 @@
                                     <div class="fw-bold">@item.User?.Name</div>
                                     <small class="text-muted">@item.User?.Email</small>
                                 </td>
-                                <td><span class="badge bg-light text-dark border">@item.Department</span></td>
-                                <td><span class="badge bg-info bg-opacity-10 text-info">Sem @item.Semester</span></td>
+                                <td><span class="ims-status ims-status-success">@item.Department</span></td>
+                                <td><span class="ims-status ims-status-warning">Sem @item.Semester</span></td>
                                 <td>@item.User?.CreatedDate.ToString("dd MMM yyyy")</td>
                                 <td class="text-end px-4">
-                                    <div class="btn-group shadow-sm">
-                                        <a asp-action="StudentDetails" asp-route-id="@item.StudentId" class="btn btn-sm btn-outline-primary" title="View Profile">
+                                    <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                                        <a asp-action="StudentDetails" asp-route-id="@item.StudentId" class="btn btn-sm btn-outline-primary border-0 py-2 px-3" title="View Profile">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         <form asp-action="DeleteStudent" asp-route-id="@item.StudentId" method="post" onsubmit="return confirm('Are you sure you want to delete this student and all their records?');" class="d-inline">
                                             @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Student">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger border-0 py-2 px-3" title="Delete Student">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -57,7 +57,7 @@
                     {
                         <tr>
                             <td colspan="6">
-                                <div class="empty-state">
+                                <div class="ims-empty-state">
                                     <i class="bi bi-people"></i>
                                     <h5>No Students Registered</h5>
                                     <p>Click 'Register Student' to add a new intern to the system.</p>

@@ -3,12 +3,13 @@
 This document provides a deep-dive into the architectural and implementation details of the Internship Management System (IMS).
 
 ## 1. System Architecture
-The application is built on **ASP.NET Core 8 MVC**, following a decoupled layered architecture for scalability and maintainability.
+The application is built on **ASP.NET Core 8 MVC**, following a decoupled layered architecture specifically designed to be **React-Ready**.
 
-- **Frontend**: Razor Views, Bootstrap 5, and Custom Vanilla CSS for a premium administrative aesthetic.
-- **Backend**: C# with .NET 8.
+- **Frontend**: Razor Views, Bootstrap 5, and Custom Vanilla CSS (with structural foundations to support absolute React SPA decoupling).
+- **Presentation Logic**: Split between MVC `Controllers` (for Razor Views) and `ApiControllers` (for React DTO consumption).
+- **Business Logic Layer**: Centralized `Service` components taking the burden entirely away from standard controllers logic logic.
 - **Data Layer**: Entity Framework Core (OR/M) with SQL Server.
-- **Identity**: Custom Claims-based Authentication with Cookie-based persistence.
+- **Identity**: Custom Claims-based Authentication with Cookie-based persistence natively bridged to handle secure internal `/api/` calls seamlessly.
 
 ---
 

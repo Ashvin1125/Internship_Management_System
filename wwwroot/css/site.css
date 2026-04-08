@@ -1,70 +1,345 @@
-/* Custom Dashboard Styles */
+/* 
+   INTERNSHIP MANAGEMENT SYSTEM - DESIGN SYSTEM (v3)
+   A premium, glassmorphism-based design system with standardized components.
+   Strategy: Bootstrap for Layout/Grid, IMS-* for Components/Styling.
+*/
+
 :root {
-    --primary-color: #0d6efd;
-    --secondary-bg: #f8f9fa;
-    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    --card-hover-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    /* --- COLOR TOKENS (Light Mode) --- */
+    --ims-primary: #0d6efd;
+    --ims-primary-glow: rgba(13, 110, 253, 0.15);
+    --ims-bg: #f5f7fa;
+    --ims-surface: rgba(255, 255, 255, 0.85); /* Glass Background */
+    --ims-text-main: #212529;
+    --ims-text-muted: #6c757d;
+    --ims-border: rgba(0, 0, 0, 0.08); /* Soft Borders */
+    --ims-glass-blur: blur(12px);
+    
+    /* --- DESIGN TOKENS --- */
+    --ims-radius: 14px;
+    --ims-radius-lg: 20px;
+    --ims-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    --ims-transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* --- RESPONSIVE SPACING (Fluid) --- */
+    --spacing-xs: clamp(0.25rem, 1vw, 0.5rem);
+    --spacing-sm: clamp(0.5rem, 2vw, 0.75rem);
+    --spacing-md: clamp(1rem, 3vw, 1.5rem);
+    --spacing-lg: clamp(1.5rem, 5vw, 2.5rem);
 }
 
+/* --- DARK MODE TOKENS --- */
+[data-theme='dark'] {
+    --ims-bg: #0f172a;
+    --ims-surface: rgba(30, 41, 59, 0.7);
+    --ims-text-main: #f8fafc;
+    --ims-text-muted: #94a3b8;
+    --ims-border: rgba(255, 255, 255, 0.1);
+    --ims-primary-glow: rgba(13, 110, 253, 0.3);
+    --ims-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Override standard Bootstrap text/bg utilities in Dark Mode for readability */
+[data-theme='dark'] .text-muted,
+[data-theme='dark'] .text-secondary,
+[data-theme='dark'] .form-label,
+[data-theme='dark'] .input-group-text,
+[data-theme='dark'] .text-muted.small,
+[data-theme='dark'] small {
+    color: var(--ims-text-muted) !important;
+}
+
+[data-theme='dark'] .text-dark,
+[data-theme='dark'] .text-black,
+[data-theme='dark'] .text-body,
+[data-theme='dark'] .list-group-item,
+[data-theme='dark'] a.list-group-item,
+[data-theme='dark'] button.list-group-item,
+[data-theme='dark'] .list-group-item-action {
+    color: var(--ims-text-main) !important;
+}
+
+[data-theme='dark'] h1, [data-theme='dark'] h2, [data-theme='dark'] h3, [data-theme='dark'] h4, [data-theme='dark'] h5, [data-theme='dark'] h6 {
+    color: var(--ims-text-main) !important;
+}
+
+[data-theme='dark'] .bg-white,
+[data-theme='dark'] .bg-light,
+[data-theme='dark'] .card-header.bg-white,
+[data-theme='dark'] .card-header.bg-light {
+    background-color: transparent !important;
+}
+
+[data-theme='dark'] .form-control,
+[data-theme='dark'] .form-select,
+[data-theme='dark'] .input-group-text {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: var(--ims-border) !important;
+    color: var(--ims-text-main) !important;
+}
+
+[data-theme='dark'] .form-control:focus,
+[data-theme='dark'] .form-select:focus {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: var(--ims-text-main) !important;
+}
+
+[data-theme='dark'] .list-group-item:hover,
+[data-theme='dark'] .list-group-item:focus,
+[data-theme='dark'] .ims-hover-accent:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* --- ACCESSIBILITY & PERFORMANCE --- */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Focus States */
+:focus-visible {
+    outline: 2px solid var(--ims-primary);
+    outline-offset: 4px;
+}
+
+/* --- GLOBAL STYLES --- */
 body {
-    background-color: var(--secondary-bg);
+    background-color: var(--ims-bg);
+    color: var(--ims-text-main);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    transition: background-color var(--ims-transition-smooth);
+    margin: 0;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
 }
 
-/* Card Styling */
-.card-stats {
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: none;
-    border-radius: 0.75rem;
-    box-shadow: var(--card-shadow);
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
 }
-.card-stats:hover {
+
+/* --- IMS COMPONENTS --- */
+
+/* .ims-page: Root wrapper for consistent page padding */
+.ims-page {
+    padding: var(--spacing-md);
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* .ims-card: Glassmorphism base for all card-like elements */
+.ims-card {
+    background: var(--ims-surface);
+    backdrop-filter: var(--ims-glass-blur);
+    -webkit-backdrop-filter: var(--ims-glass-blur); /* Safari fallback */
+    border: 1px solid var(--ims-border);
+    border-radius: var(--ims-radius);
+    box-shadow: var(--ims-shadow);
+    padding: var(--spacing-md);
+    transition: transform var(--ims-transition-smooth), box-shadow var(--ims-transition-smooth), background-color var(--ims-transition-smooth);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Support for backdrop-filter unsupported browsers */
+@supports not (backdrop-filter: blur(12px)) {
+    .ims-card {
+        background: var(--ims-surface); /* Fallback to solid surface */
+        opacity: 0.98;
+    }
+}
+
+.ims-card:hover {
     transform: translateY(-5px);
-    box-shadow: var(--card-hover-shadow);
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
 }
 
-/* Status Badges - Unified */
-.status-badge {
-    padding: 0.35em 0.8em;
+/* .ims-btn: Premium button interaction */
+.ims-btn {
+    border-radius: 50rem;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    transition: all var(--ims-transition-smooth);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+}
+
+.ims-btn-primary {
+    background: var(--ims-primary);
+    color: white;
+}
+
+.ims-btn-primary:active {
+    transform: scale(0.96);
+}
+
+/* .ims-table-container: Responsive glass container for data tables */
+.ims-table-container {
+    background: var(--ims-surface);
+    backdrop-filter: var(--ims-glass-blur);
+    border-radius: var(--ims-radius);
+    border: 1px solid var(--ims-border);
+    overflow: hidden; /* For rounded corners */
+}
+
+.ims-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ims-table th {
+    background: rgba(0, 0, 0, 0.03); /* Subtle header background */
+    color: var(--ims-text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 1rem;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+[data-theme='dark'] .ims-table th {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ims-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--ims-border);
+    vertical-align: middle;
+}
+
+.ims-table tr:hover {
+    background: rgba(13, 110, 253, 0.04);
+}
+
+/* .ims-empty-state: Standardized empty dataset design */
+.ims-empty-state {
+    text-align: center;
+    padding: var(--spacing-lg);
+    color: var(--ims-text-muted);
+}
+
+.ims-empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+    opacity: 0.5;
+}
+
+/* .ims-status: Standardized pill-style status indicators */
+.ims-status {
+    padding: 4px 12px;
+    border-radius: 50rem;
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-radius: 50rem;
 }
 
-.status-pending { background-color: #fff3cd; color: #856404; }
-.status-approved { background-color: #d1e7dd; color: #0f5132; }
-.status-rejected { background-color: #f8d7da; color: #842029; }
-.status-info { background-color: #cff4fc; color: #055160; }
+.ims-status-success { background: rgba(25, 135, 84, 0.15); color: #198754; }
+.ims-status-warning { background: rgba(255, 193, 7, 0.15); color: #997404; }
+.ims-status-danger { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
 
-/* Table Enhancements */
-.table-custom thead {
-    background-color: #f1f3f5;
-    color: #495057;
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    letter-spacing: 1px;
-    font-weight: 800;
-}
-.table-custom tbody tr:hover {
-    background-color: rgba(13, 110, 253, 0.03);
+/* Auth Pages */
+.ims-auth-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 120px);
+    width: 100%;
 }
 
-/* Form Styles */
-.form-card {
-    border-radius: 1rem;
-    box-shadow: 0 1rem 3rem rgba(0,0,0,.175);
-    border: none;
+.ims-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
-/* Empty State Icons */
-.empty-state {
-    padding: 3rem;
-    text-align: center;
-    color: #adb5bd;
+.ims-input-group i {
+    position: absolute;
+    left: 15px;
+    color: var(--ims-text-muted);
+    z-index: 10;
+    transition: color 0.2s;
 }
-.empty-state i {
-    font-size: 4rem;
-    display: block;
-    margin-bottom: 1rem;
+
+.ims-input-group input {
+    padding-left: 45px !important;
+}
+
+.ims-input-group:focus-within i {
+    color: var(--ims-primary);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- SIDEBAR & NAVBAR SPECIAL STYLES --- */
+
+/* Scoped transition for layout shifts */
+.sidebar, .main-content, .navbar {
+    transition: all var(--ims-transition-smooth);
+}
+
+.sidebar.collapsed {
+    width: 80px !important;
+}
+
+.sidebar.collapsed .sidebar-header {
+    flex-direction: column;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    justify-content: center !important;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+    margin-top: 12px;
+}
+
+.sidebar.collapsed .sidebar-text, 
+.sidebar.collapsed .sidebar-header h5 {
+    display: none;
+}
+
+/* Responsive Table Fix */
+.table-responsive-ims {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 991.98px) {
+    .sidebar {
+        position: fixed !important;
+        left: -260px;
+        transition: left var(--ims-transition-smooth);
+        box-shadow: 5px 0 25px rgba(0,0,0,0.15) !important;
+        width: 260px !important;
+    }
+    
+    [data-theme='dark'] .sidebar {
+        box-shadow: 5px 0 25px rgba(0,0,0,0.6) !important;
+    }
+
+    .sidebar.mobile-open {
+        left: 0 !important;
+    }
 }
