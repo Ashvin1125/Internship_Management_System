@@ -4,6 +4,7 @@ using InternshipManagementSystem.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using InternshipManagementSystem.Services;
 
 namespace InternshipManagementSystem.Controllers
 {
@@ -11,24 +12,25 @@ namespace InternshipManagementSystem.Controllers
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly DashboardService _dashboardService;
 
-        public AdminController(ApplicationDbContext context)
+        public AdminController(ApplicationDbContext context, DashboardService dashboardService)
         {
             _context = context;
+            _dashboardService = dashboardService;
         }
 
         public async Task<IActionResult> Index()
         {
-            ViewBag.TotalStudents = await _context.Students.CountAsync();
-            ViewBag.TotalGuides = await _context.Guides.CountAsync();
-            ViewBag.TotalAssignments = await _context.GuideAssignments.CountAsync();
-            var assignedStudentIds = await _context.GuideAssignments.Select(g => g.StudentId).ToListAsync();
-            ViewBag.Unassigned = await _context.Students.CountAsync(s => !assignedStudentIds.Contains(s.StudentId));
+            var stats = await _dashboardService.GetAdminStatsAsync();
+            
+            // Still need assignments list for the table in Index
             ViewBag.Assignments = await _context.GuideAssignments
                 .Include(ga => ga.Student).ThenInclude(s => s.User)
                 .Include(ga => ga.Guide).ThenInclude(g => g.User)
                 .ToListAsync();
-            return View();
+
+            return View(stats);
         }
 
         public async Task<IActionResult> Students()
@@ -59,6 +61,8 @@ namespace InternshipManagementSystem.Controllers
                     _context.Students.Add(student);
                     await _context.SaveChangesAsync();
                     
+                    _dashboardService.InvalidateAdminCache();
+
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Student registered successfully.", redirectUrl = Url.Action("Students") });
 
@@ -105,6 +109,8 @@ namespace InternshipManagementSystem.Controllers
                     _context.Guides.Add(guide);
                     await _context.SaveChangesAsync();
                     
+                    _dashboardService.InvalidateAdminCache();
+
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Guide registered successfully.", redirectUrl = Url.Action("Guides") });
 
@@ -147,6 +153,10 @@ namespace InternshipManagementSystem.Controllers
                     {
                         _context.GuideAssignments.Add(new GuideAssignment { GuideId = guideId, StudentId = studentId });
                         await _context.SaveChangesAsync();
+                        
+                        _dashboardService.InvalidateAdminCache();
+                        _dashboardService.InvalidateGuideCache(guideId);
+
                         TempData["Success"] = "Guide assigned successfully.";
                     }
                     catch (Exception ex)
@@ -183,6 +193,9 @@ namespace InternshipManagementSystem.Controllers
                     if (user != null) _context.Users.Remove(user);
                     _context.Students.Remove(student);
                     await _context.SaveChangesAsync();
+                    
+                    _dashboardService.InvalidateAdminCache();
+
                     TempData["Success"] = "Student deleted successfully.";
                 }
                 catch (Exception ex)
@@ -206,6 +219,9 @@ namespace InternshipManagementSystem.Controllers
                     if (user != null) _context.Users.Remove(user);
                     _context.Guides.Remove(guide);
                     await _context.SaveChangesAsync();
+                    
+                    _dashboardService.InvalidateAdminCache();
+
                     TempData["Success"] = "Guide deleted successfully.";
                 }
                 catch (Exception ex)

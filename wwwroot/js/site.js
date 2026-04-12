@@ -58,9 +58,16 @@ $(document).ready(function () {
         }
 
         var formData = new FormData(this);
+        
+        // BUG FIX: FormData(this) doesn't include the clicked submit button's name/value.
+        // We capture the button that triggered the submit and append it.
+        var $submitter = $(e.originalEvent.submitter);
+        if ($submitter.length && $submitter.attr('name')) {
+            formData.append($submitter.attr('name'), $submitter.val());
+        }
 
         // Show loading state (Standardized button loading)
-        var $submitBtn = $form.find('button[type="submit"]');
+        var $submitBtn = $submitter.length ? $submitter : $form.find('button[type="submit"]');
         var originalBtnHtml = $submitBtn.html();
         $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Processing...');
 

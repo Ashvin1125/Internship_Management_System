@@ -6,10 +6,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.DataProtection;
 using System.IO;
+using InternshipManagementSystem.Services;
+using InternshipManagementSystem.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Step 1: Dynamic Port Binding (Render/Railway inject $PORT; Docker uses ASPNETCORE_URLS)
+// Step 1: Dynamic Port Binding
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrEmpty(port))
 {
@@ -22,6 +25,14 @@ builder.Logging.AddConsole();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
+builder.Services.AddMemoryCache();
+
+// Register Services (No interfaces, simple classes)
+builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<MessageService>();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
 
 // Step 3: Persist DataProtection Keys
 builder.Services.AddDataProtection()
@@ -129,6 +140,13 @@ app.Use(async (context, next) =>
 {
     var path = context.Request.Path.Value?.Trim('/');
     
+    // Skip SignalR hubs and static assets
+    if (path != null && (path.StartsWith("chatHub") || path.Contains(".")))
+    {
+        await next();
+        return;
+    }
+
     if (string.IsNullOrEmpty(path) || path.Equals("Account/Login", StringComparison.OrdinalIgnoreCase))
     {
         var sid = "s" + Guid.NewGuid().ToString("N").Substring(0, 5);
@@ -162,6 +180,8 @@ app.Use(async (context, next) =>
 app.MapControllerRoute(
     name: "default",
     pattern: "{sid}/{controller=Account}/{action=Login}/{id?}");
+
+app.MapHub<ChatHub>("/chatHub");
 
 if (!OperatingSystem.IsWindows())
     Directory.CreateDirectory("/var/data/keys");

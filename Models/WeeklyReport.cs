@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InternshipManagementSystem.Models
 {
-    public class WeeklyReport
+    public class WeeklyReport : BaseEntity
     {
         [Key]
         public int ReportId { get; set; }

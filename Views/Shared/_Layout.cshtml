@@ -1,26 +1,33 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Internship Management</title>
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
+        rel="stylesheet">
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/InternshipManagementSystem.styles.css" asp-append-version="true" />
+
+    <!-- Third Party Libs -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+
     <style>
-        /* Layout Specific styles that depend on sidebar width */
+        /* Layout Specific styles */
         .sidebar {
             width: 260px;
-            background: #1e293b; /* Fallback for glass */
+            background: #1e293b;
             color: #fff;
             flex-shrink: 0;
             display: flex;
@@ -50,7 +57,8 @@
             gap: 12px;
         }
 
-        .sidebar a:hover, .sidebar a.active {
+        .sidebar a:hover,
+        .sidebar a.active {
             color: #fff;
             background: rgba(255, 255, 255, 0.05);
             border-left-color: #3b82f6;
@@ -80,7 +88,9 @@
             z-index: 1000;
         }
 
-        .theme-toggle, .sidebar-toggle {
+        .theme-toggle,
+        .sidebar-toggle,
+        .nav-icon-btn {
             width: 40px;
             height: 40px;
             border-radius: 10px;
@@ -92,19 +102,41 @@
             background: transparent;
             border: 1px solid var(--ims-border);
             color: var(--ims-text-main);
+            position: relative;
         }
 
-        .theme-toggle:hover, .sidebar-toggle:hover {
+        .theme-toggle:hover,
+        .sidebar-toggle:hover,
+        .nav-icon-btn:hover {
             background: var(--ims-primary-glow);
             color: var(--ims-primary);
         }
+
+        /* Notification Badge */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: bold;
+            border: 2px solid var(--ims-surface);
+            display: none;
+        }
     </style>
 </head>
+
 <body>
     @{
         var sid = ViewContext.RouteData.Values["sid"]?.ToString();
+
+        var userId = User.FindFirst("UserId")?.Value;
     }
     @if (User.Identity.IsAuthenticated)
+
     {
         <div class="sidebar" id="sidebar">
             <div class="p-4 d-flex align-items-center justify-content-between sidebar-header">
@@ -112,59 +144,96 @@
                     <i class="bi bi-mortarboard-fill fs-3 text-primary"></i>
                     <h5 class="mb-0 text-white fw-bold">IMS Portal</h5>
                 </div>
-                <!-- Mini Toggle for Sidebar within Sidebar header for convenience -->
-                <button class="sidebar-toggle d-none d-lg-flex border-0 text-white opacity-50" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+                <button class="sidebar-toggle d-none d-lg-flex border-0 text-white opacity-50" onclick="toggleSidebar()"
+                    aria-label="Toggle Sidebar">
                     <i class="bi bi-list"></i>
                 </button>
             </div>
-            
+
             <div class="flex-grow-1 pt-2">
                 @functions {
-                    string IsActive(string controller, string action) {
-                        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
-                        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
-                        return string.Equals(controller, currentController, StringComparison.OrdinalIgnoreCase) && 
-                               string.Equals(action, currentAction, StringComparison.OrdinalIgnoreCase) ? "active" : "";
-                    }
-                }
-                
-                @if (User.HasClaim(c => c.Type == System.Security.Claims.ClaimTypes.Role && c.Value == "Admin"))
+                string IsActive(string controller, string action)
                 {
-                    <a asp-controller="Admin" asp-action="Index" asp-route-sid="@sid" class="@IsActive("Admin", "Index")"><i class="bi bi-grid-1x2-fill"></i> <span class="sidebar-text">Dashboard</span></a>
-                    <a asp-controller="Admin" asp-action="Students" asp-route-sid="@sid" class="@IsActive("Admin", "Students")"><i class="bi bi-people-fill"></i> <span class="sidebar-text">Manage Students</span></a>
-                    <a asp-controller="Admin" asp-action="Guides" asp-route-sid="@sid" class="@IsActive("Admin", "Guides")"><i class="bi bi-person-badge-fill"></i> <span class="sidebar-text">Manage Guides</span></a>
-                    <a asp-controller="Admin" asp-action="AssignGuide" asp-route-sid="@sid" class="@IsActive("Admin", "AssignGuide")"><i class="bi bi-link-45deg"></i> <span class="sidebar-text">Assign Guide</span></a>
-                    <div class="mt-4 px-3 mb-2 small text-uppercase text-muted opacity-50"><span class="sidebar-text">Personal</span></div>
-                    <a asp-controller="Account" asp-action="Profile" asp-route-sid="@sid" class="@IsActive("Account", "Profile")"><i class="bi bi-person-circle"></i> <span class="sidebar-text">My Profile</span></a>
+                    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+                    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+                    return string.Equals(controller, currentController, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(action, currentAction, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+
                 }
+            }
+
+            @if (User.HasClaim(c => c.Type == System.Security.Claims.ClaimTypes.Role && c.Value == "Admin"))
+
+                {
+                    <a asp-controller="Admin" asp-action="Index" asp-route-sid="@sid" class="@IsActive("Admin", "Index")"><i
+                            class="bi bi-grid-1x2-fill"></i> <span class="sidebar-text">Dashboard</span></a>
+                    <a asp-controller="Admin" asp-action="Students" asp-route-sid="@sid"
+                        class="@IsActive("Admin", "Students")"><i class="bi bi-people-fill"></i> <span
+                            class="sidebar-text">Manage Students</span></a>
+                    <a asp-controller="Admin" asp-action="Guides" asp-route-sid="@sid" class="@IsActive("Admin", "Guides")"><i
+                            class="bi bi-person-badge-fill"></i> <span class="sidebar-text">Manage Guides</span></a>
+                    <a asp-controller="Admin" asp-action="AssignGuide" asp-route-sid="@sid"
+                        class="@IsActive("Admin", "AssignGuide")"><i class="bi bi-link-45deg"></i> <span
+                            class="sidebar-text">Assign Guide</span></a>
+                }
+
                 else if (User.HasClaim(c => c.Type == System.Security.Claims.ClaimTypes.Role && c.Value == "Guide"))
+
                 {
-                    <a asp-controller="Guide" asp-action="Index" asp-route-sid="@sid" class="@IsActive("Guide", "Index")"><i class="bi bi-grid-1x2-fill"></i> <span class="sidebar-text">Dashboard</span></a>
-                    <a asp-controller="Guide" asp-action="Students" asp-route-sid="@sid" class="@IsActive("Guide", "Students")"><i class="bi bi-people-fill"></i> <span class="sidebar-text">My Students</span></a>
-                    <a asp-controller="Guide" asp-action="Diaries" asp-route-sid="@sid" class="@IsActive("Guide", "Diaries")"><i class="bi bi-journal-check"></i> <span class="sidebar-text">Review Diaries</span></a>
-                    <a asp-controller="Guide" asp-action="WeeklyReports" asp-route-sid="@sid" class="@IsActive("Guide", "WeeklyReports")"><i class="bi bi-file-earmark-bar-graph"></i> <span class="sidebar-text">Weekly Reports</span></a>
-                    <a asp-controller="Guide" asp-action="Tasks" asp-route-sid="@sid" class="@IsActive("Guide", "Tasks")"><i class="bi bi-list-check"></i> <span class="sidebar-text">View Tasks</span></a>
-                    <a asp-controller="Guide" asp-action="AssignTask" asp-route-sid="@sid" class="@IsActive("Guide", "AssignTask")"><i class="bi bi-plus-circle-fill"></i> <span class="sidebar-text">Assign Task</span></a>
-                    <div class="mt-4 px-3 mb-2 small text-uppercase text-muted opacity-50"><span class="sidebar-text">Personal</span></div>
-                    <a asp-controller="Account" asp-action="Profile" asp-route-sid="@sid" class="@IsActive("Account", "Profile")"><i class="bi bi-person-circle"></i> <span class="sidebar-text">My Profile</span></a>
+                    <a asp-controller="Guide" asp-action="Index" asp-route-sid="@sid" class="@IsActive("Guide", "Index")"><i
+                            class="bi bi-grid-1x2-fill"></i> <span class="sidebar-text">Dashboard</span></a>
+                    <a asp-controller="Guide" asp-action="Students" asp-route-sid="@sid"
+                        class="@IsActive("Guide", "Students")"><i class="bi bi-people-fill"></i> <span class="sidebar-text">My
+                            Students</span></a>
+                    <a asp-controller="Guide" asp-action="Diaries" asp-route-sid="@sid" class="@IsActive("Guide", "Diaries")"><i
+                            class="bi bi-journal-check"></i> <span class="sidebar-text">Review Diaries</span></a>
+                    <a asp-controller="Guide" asp-action="WeeklyReports" asp-route-sid="@sid"
+                        class="@IsActive("Guide", "WeeklyReports")"><i class="bi bi-file-earmark-bar-graph"></i> <span
+                            class="sidebar-text">Weekly Reports</span></a>
+                    <a asp-controller="Guide" asp-action="Tasks" asp-route-sid="@sid" class="@IsActive("Guide", "Tasks")"><i
+                            class="bi bi-list-check"></i> <span class="sidebar-text">View Tasks</span></a>
+                    <a asp-controller="Guide" asp-action="AssignTask" asp-route-sid="@sid"
+                        class="@IsActive("Guide", "AssignTask")"><i class="bi bi-plus-circle-fill"></i> <span
+                            class="sidebar-text">Assign Task</span></a>
                 }
+
                 else if (User.HasClaim(c => c.Type == System.Security.Claims.ClaimTypes.Role && c.Value == "Student"))
+
                 {
-                    <a asp-controller="Student" asp-action="Index" asp-route-sid="@sid" class="@IsActive("Student", "Index")"><i class="bi bi-grid-1x2-fill"></i> <span class="sidebar-text">Dashboard</span></a>
-                    <a asp-controller="Student" asp-action="Internship" asp-route-sid="@sid" class="@IsActive("Student", "Internship")"><i class="bi bi-building-fill"></i> <span class="sidebar-text">My Internship</span></a>
-                    <a asp-controller="Student" asp-action="Diary" asp-route-sid="@sid" class="@IsActive("Student", "Diary")"><i class="bi bi-journal-plus"></i> <span class="sidebar-text">Daily Diary</span></a>
-                    <a asp-controller="Student" asp-action="WeeklyReports" asp-route-sid="@sid" class="@IsActive("Student", "WeeklyReports")"><i class="bi bi-file-earmark-bar-graph-fill"></i> <span class="sidebar-text">Weekly Reports</span></a>
-                    <a asp-controller="Student" asp-action="Tasks" asp-route-sid="@sid" class="@IsActive("Student", "Tasks")"><i class="bi bi-list-task"></i> <span class="sidebar-text">Assigned Tasks</span></a>
-                    <a asp-controller="Student" asp-action="Documents" asp-route-sid="@sid" class="@IsActive("Student", "Documents")"><i class="bi bi-folder-fill"></i> <span class="sidebar-text">My Documents</span></a>
-                    <div class="mt-4 px-3 mb-2 small text-uppercase text-muted opacity-50"><span class="sidebar-text">Personal</span></div>
-                    <a asp-controller="Account" asp-action="Profile" asp-route-sid="@sid" class="@IsActive("Account", "Profile")"><i class="bi bi-person-circle"></i> <span class="sidebar-text">My Profile</span></a>
+                    <a asp-controller="Student" asp-action="Index" asp-route-sid="@sid" class="@IsActive("Student", "Index")"><i
+                            class="bi bi-grid-1x2-fill"></i> <span class="sidebar-text">Dashboard</span></a>
+                    <a asp-controller="Student" asp-action="Internship" asp-route-sid="@sid"
+                        class="@IsActive("Student", "Internship")"><i class="bi bi-building-fill"></i> <span
+                            class="sidebar-text">My Internship</span></a>
+                    <a asp-controller="Student" asp-action="Diary" asp-route-sid="@sid" class="@IsActive("Student", "Diary")"><i
+                            class="bi bi-journal-plus"></i> <span class="sidebar-text">Daily Diary</span></a>
+                    <a asp-controller="Student" asp-action="WeeklyReports" asp-route-sid="@sid"
+                        class="@IsActive("Student", "WeeklyReports")"><i class="bi bi-file-earmark-bar-graph-fill"></i> <span
+                            class="sidebar-text">Weekly Reports</span></a>
+                    <a asp-controller="Student" asp-action="Tasks" asp-route-sid="@sid" class="@IsActive("Student", "Tasks")"><i
+                            class="bi bi-list-task"></i> <span class="sidebar-text">Assigned Tasks</span></a>
+                    <a asp-controller="Student" asp-action="Documents" asp-route-sid="@sid"
+                        class="@IsActive("Student", "Documents")"><i class="bi bi-folder-fill"></i> <span
+                            class="sidebar-text">My Documents</span></a>
                 }
+
+                <div class="mt-4 px-3 mb-2 small text-uppercase text-muted opacity-50"><span
+                        class="sidebar-text">Communication</span></div>
+                <a asp-controller="Chat" asp-action="Index" asp-route-sid="@sid" class="@IsActive("Chat", "Index")"><i
+                        class="bi bi-chat-dots-fill"></i> <span class="sidebar-text">Messages</span></a>
+
+                <div class="mt-4 px-3 mb-2 small text-uppercase text-muted opacity-50"><span
+                        class="sidebar-text">Personal</span></div>
+                <a asp-controller="Account" asp-action="Profile" asp-route-sid="@sid"
+                    class="@IsActive("Account", "Profile")"><i class="bi bi-person-circle"></i> <span
+                        class="sidebar-text">My Profile</span></a>
             </div>
         </div>
     }
 
     <div class="main-content" id="main-content">
         @if (User.Identity.IsAuthenticated)
+
         {
             <header class="top-navbar px-4 py-2">
                 <div class="container-fluid d-flex align-items-center justify-content-between">
@@ -172,34 +241,59 @@
                         <button class="sidebar-toggle d-lg-none" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
                             <i class="bi bi-list"></i>
                         </button>
-                        <h4 class="mb-0 fw-bold d-none d-sm-block">@ViewData["Title"]</h4>
                     </div>
-                    
+
                     <div class="d-flex align-items-center gap-3">
-                        <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Dark Mode">
+                        <!-- Notifications -->
+                        <div class="dropdown">
+                            <button class="nav-icon-btn" id="notificationBtn" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                <i class="bi bi-bell-fill"></i>
+                                <span class="notification-badge" id="notifBadge">0</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end p-0 border-0 shadow-lg ims-card mt-2"
+                                style="width: 320px; overflow: hidden;">
+                                <div
+                                    class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center bg-primary bg-opacity-10">
+                                    <h6 class="mb-0 fw-bold">Notifications</h6>
+                                    <button class="btn btn-sm btn-link text-decoration-none p-0" id="markAllReadBtn"
+                                        style="font-size: 0.75rem;">Mark all as read</button>
+                                </div>
+                                <div id="notificationList" style="max-height: 350px; overflow-y: auto;">
+                                    <!-- Notifications will be loaded here -->
+                                    <div class="p-4 text-center text-muted small">Loading notifications...</div>
+                                </div>
+                            </ul>
+                        </div>
+
+                        <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"
+                            aria-label="Toggle Dark Mode">
                             <i class="bi bi-moon-stars-fill" id="theme-icon"></i>
                         </button>
-                        
+
                         <div class="vr mx-2 text-muted opacity-25 d-none d-md-block"></div>
-                        
+
                         <div class="d-flex align-items-center gap-3 pe-2">
                             <div class="text-end d-none d-md-block">
                                 <span class="d-block fw-bold small">@User.Identity.Name</span>
-                                <small class="text-muted" style="font-size: 0.7rem;">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</small>
+                                <small class="text-muted"
+                                    style="font-size: 0.7rem;">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</small>
                             </div>
-                            <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center p-2" style="width: 42px; height: 42px;">
+                            <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center p-2"
+                                style="width: 42px; height: 42px;">
                                 <i class="bi bi-person-fill text-primary fs-5"></i>
                             </div>
                         </div>
-                        
-                        <a asp-controller="Account" asp-action="Logout" asp-route-sid="@sid" class="ims-btn ims-btn-primary py-1 px-3 small d-none d-md-flex" style="font-size: 0.85rem;">
+
+                        <a asp-controller="Account" asp-action="Logout" asp-route-sid="@sid"
+                            class="ims-btn ims-btn-primary py-1 px-3 small d-none d-md-flex" style="font-size: 0.85rem;">
                             <i class="bi bi-box-arrow-right"></i> Logout
                         </a>
                     </div>
                 </div>
             </header>
         }
-        
+
         <div class="ims-page">
             <main role="main">
                 @RenderBody()
@@ -207,51 +301,173 @@
         </div>
     </div>
 
-    <!-- Global Notification System (SweetAlert2) -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            @if (TempData["Success"] != null)
-            {
-                <text>
-                Swal.fire({
-                    title: 'Success!',
-                    text: '@Html.Raw(TempData["Success"])',
-                    icon: 'success',
-                    confirmButtonColor: '#0d6efd',
-                    confirmButtonText: 'OK',
-                    customClass: {
-                        popup: 'ims-card border-0',
-                        confirmButton: 'ims-btn ims-btn-primary px-5'
-                    },
-                    buttonsStyling: false
-                });
-                </text>
-            }
-            @if (TempData["Error"] != null)
-            {
-                <text>
-                Swal.fire({
-                    title: 'Error!',
-                    text: '@Html.Raw(TempData["Error"])',
-                    icon: 'error',
-                    confirmButtonColor: '#0d6efd',
-                    confirmButtonText: 'Try Again',
-                    customClass: {
-                        popup: 'ims-card border-0',
-                        confirmButton: 'ims-btn ims-btn-primary px-5'
-                    },
-                    buttonsStyling: false
-                });
-                </text>
-            }
-        });
-    </script>
-        </div>
-    </div>
-
+    <!-- Scripts -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @if (User.Identity.IsAuthenticated)
+
+    {
+        <script>
+            const SID = "@sid";
+            const USER_ID = "@userId";
+
+            // SignalR Connection
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/chatHub?sid=" + SID)
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("ReceiveNotification", function (message) {
+                refreshNotifications();
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+                Toast.fire({ icon: 'info', title: message });
+            });
+
+            connection.on("ReceiveMessage", function (senderId, receiverId, message, time, messageId) {
+                if (typeof onReceiveMessage === 'function') {
+                    onReceiveMessage(senderId, receiverId, message, time, messageId);
+                } else {
+                    refreshNotifications();
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                    Toast.fire({ icon: 'info', title: 'New message received' });
+                }
+            });
+
+            connection.on("ReceiveBroadcast", function (senderId, content, time) {
+                refreshNotifications();
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true
+                });
+                Toast.fire({
+                    icon: 'info',
+                    title: 'System Announcement',
+                    text: content
+                });
+
+                if (typeof onReceiveMessage === 'function') {
+                    // Also sync if already in conversation with admin
+                    onReceiveMessage(senderId, USER_ID, content, time, 0);
+                }
+            });
+
+            connection.start().catch(err => console.error(err.toString()));
+
+            // Notifications Logic
+            function refreshNotifications() {
+                $.get(`/${SID}/Notification/GetLatest`, function (res) {
+                    if (res.success) {
+                        $('#notifBadge').text(res.unreadCount).toggle(res.unreadCount > 0);
+
+                        let html = '';
+                        if (res.notifications.length === 0) {
+                            html = '<div class="p-4 text-center text-muted small">No notifications yet</div>';
+                        } else {
+                            res.notifications.forEach(n => {
+                                let icon = 'bi-info-circle';
+                                if (n.type === 'Task') icon = 'bi-list-task';
+                                if (n.type === 'Diary') icon = 'bi-journal-check';
+                                if (n.type === 'Chat') icon = 'bi-chat-dots';
+
+                                html += `
+                                        <div class="px-3 py-2 border-bottom notification-item ${n.isRead ? '' : 'bg-primary bg-opacity-5'}" style="cursor: pointer" onclick="markAsRead(${n.id})">
+                                            <div class="d-flex gap-2">
+                                                <div class="text-primary mt-1"><i class="bi ${icon}"></i></div>
+                                                <div>
+                                                    <div class="small fw-medium">${n.message}</div>
+                                                    <div class="text-muted" style="font-size: 0.7rem;">${new Date(n.createdAt).toLocaleString()}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                            });
+                        }
+                        $('#notificationList').html(html);
+                    }
+                });
+            }
+
+            function markAsRead(id) {
+                $.post(`/${SID}/Notification/MarkRead`, { id: id }, function (res) {
+                    if (res.success) refreshNotifications();
+                });
+            }
+
+            $('#markAllReadBtn').click(function () {
+                $.post(`/${SID}/Notification/MarkAllRead`, function (res) {
+                    if (res.success) refreshNotifications();
+                });
+            });
+
+
+            $(document).ready(function () {
+                refreshNotifications();
+                // Polling as fallback (every 5 mins)
+                setInterval(refreshNotifications, 300000); 
+            });
+        </script>
+    }
+
+    <!-- Global Notification System (SweetAlert2) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+        @if (TempData["Success"] != null)
+
+        {
+            <text>
+                        Swal.fire({
+                            title: 'Success!',
+                        text: '@Html.Raw(TempData["Success"])',
+                        icon: 'success',
+                        confirmButtonColor: '#0d6efd',
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            popup: 'ims-card border-0',
+                        confirmButton: 'ims-btn ims-btn-primary px-5'
+                        },
+                        buttonsStyling: false
+                    });
+            </text>
+        }
+        @if (TempData["Error"] != null)
+
+        {
+            <text>
+                        Swal.fire({
+                            title: 'Error!',
+                        text: '@Html.Raw(TempData["Error"])',
+                        icon: 'error',
+                        confirmButtonColor: '#0d6efd',
+                        confirmButtonText: 'Try Again',
+                        customClass: {
+                            popup: 'ims-card border-0',
+                        confirmButton: 'ims-btn ims-btn-primary px-5'
+                        },
+                        buttonsStyling: false
+                    });
+            </text>
+        }
+        });
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>

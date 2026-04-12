@@ -1,17 +1,20 @@
+@using InternshipManagementSystem.Services
+@model StudentStats
 @{
     ViewData["Title"] = "Student Dashboard";
 }
 
 <div class="row g-4 mb-4">
     <div class="col-md-3">
-        <div class="ims-card h-100 border-start border-primary border-4">
+        <div class="ims-card h-100 border-start border-primary border-4 shadow-sm">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <p class="text-muted small fw-bold text-uppercase mb-1">Daily Diaries</p>
-                    <h2 class="mb-0 fw-bold px-0">@ViewBag.TotalDiaries</h2>
+                    <p class="text-muted small fw-bold text-uppercase mb-1">Approved Diaries</p>
+                    <h2 class="mb-0 fw-bold px-0">@Model.ApprovedDiaries</h2>
+                    <small class="text-muted">Total: @Model.TotalDiaries</small>
                 </div>
                 <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
-                    <i class="bi bi-journal-text fs-4 text-primary"></i>
+                    <i class="bi bi-journal-check fs-4 text-primary"></i>
                 </div>
             </div>
             <div class="mt-3">
@@ -20,11 +23,12 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="ims-card h-100 border-start border-warning border-4">
+        <div class="ims-card h-100 border-start border-warning border-4 shadow-sm">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <p class="text-muted small fw-bold text-uppercase mb-1">Total Tasks</p>
-                    <h2 class="mb-0 fw-bold text-warning px-0">@ViewBag.TasksAssigned</h2>
+                    <h2 class="mb-0 fw-bold text-warning px-0">@Model.TasksAssigned</h2>
+                    <small class="text-muted">Comp: @Model.TasksCompleted</small>
                 </div>
                 <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
                     <i class="bi bi-list-task fs-4 text-warning"></i>
@@ -36,70 +40,146 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="ims-card h-100 border-start border-danger border-4">
+        <div class="ims-card h-100 border-start border-info border-4 shadow-sm">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <p class="text-muted small fw-bold text-uppercase mb-1">Pending Tasks</p>
-                    <h2 class="mb-0 fw-bold text-danger px-0">@ViewBag.PendingTasks</h2>
+                    <p class="text-muted small fw-bold text-uppercase mb-1">Days Remaining</p>
+                    <h2 class="mb-0 fw-bold text-info px-0">@Model.DaysRemaining</h2>
+                    <small class="text-muted">Internship Period</small>
                 </div>
-                <div class="bg-danger bg-opacity-10 p-3 rounded-circle">
-                    <i class="bi bi-hourglass-split fs-4 text-danger"></i>
+                <div class="bg-info bg-opacity-10 p-3 rounded-circle">
+                    <i class="bi bi-calendar-event fs-4 text-info"></i>
                 </div>
             </div>
-            <div class="mt-3">
-                <a class="small text-danger fw-bold text-decoration-none stretched-link" asp-action="Tasks">Pending Fix <i class="bi bi-arrow-right"></i></a>
+            <div class="mt-3 text-start">
+                <a class="small text-info fw-bold text-decoration-none stretched-link" asp-action="Internship">Details <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="ims-card h-100 border-start @(ViewBag.HasInternship == true ? "border-success" : "border-secondary") border-4 text-center">
+        <div class="ims-card h-100 border-start border-success border-4 shadow-sm">
             <div class="d-flex justify-content-between align-items-start text-start">
                 <div>
-                    <p class="text-muted small fw-bold text-uppercase mb-1">Internship</p>
-                    <h6 class="mb-0 @(ViewBag.HasInternship == true ? "text-success fw-bold" : "text-muted")">
-                        @(ViewBag.HasInternship == true ? "Active" : "Not Defined")
+                    <p class="text-muted small fw-bold text-uppercase mb-1">Company</p>
+                    <h6 class="mb-0 text-success fw-bold" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;">
+                        @(string.IsNullOrEmpty(Model.CompanyName) ? "Not Set" : Model.CompanyName)
                     </h6>
+                    <small class="text-muted">@(Model.ProgressPercentage)% Done</small>
                 </div>
-                <div class="@(ViewBag.HasInternship == true ? "bg-success" : "bg-secondary") bg-opacity-10 p-3 rounded-circle">
-                    <i class="bi bi-building fs-4 @(ViewBag.HasInternship == true ? "text-success" : "text-secondary")"></i>
+                <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+                    <i class="bi bi-building fs-4 text-success"></i>
                 </div>
             </div>
             <div class="mt-3 text-start">
-                <a class="small @(ViewBag.HasInternship == true ? "text-success" : "text-secondary") fw-bold text-decoration-none stretched-link" asp-action="Internship">View Details <i class="bi bi-arrow-right"></i></a>
+                <a class="small text-success fw-bold text-decoration-none stretched-link" asp-action="Internship">Manage <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row g-4">
-    <div class="col-md-6">
-        <div class="ims-card h-100">
-            <div class="border-bottom border-light pb-3 mb-3">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-lightning-fill text-warning me-2"></i>Quick Actions</h5>
+<div class="row g-4 mb-4">
+    <div class="col-md-5">
+        <div class="ims-card h-100 shadow-sm text-center d-flex flex-column justify-content-center">
+            <h5 class="mb-4 fw-bold">Internship Completion</h5>
+            <div style="height: 240px; position: relative;">
+                <canvas id="progressChart"></canvas>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                    <h3 class="fw-bold mb-0">@Model.ProgressPercentage%</h3>
+                    <small class="text-muted">Progress</small>
+                </div>
             </div>
-            <div class="list-group list-group-flush bg-transparent">
-                <a asp-action="CreateDiary" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 border-0 rounded bg-transparent ims-hover-accent">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="bg-primary bg-opacity-10 p-2 rounded-circle"><i class="bi bi-plus-circle text-primary"></i></div>
-                        <span class="fw-bold">Add Today's Diary Entry</span>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div class="ims-card h-100 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0 fw-bold">Recent Task Deadlines</h5>
+                <a asp-action="Tasks" class="small text-primary text-decoration-none">View All</a>
+            </div>
+            <div class="list-group list-group-flush">
+                @if (Model.UpcomingDeadlines.Any())
+                {
+                    foreach (var task in Model.UpcomingDeadlines)
+                    {
+                        <div class="list-group-item px-0 py-3 bg-transparent border-bottom">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1 fw-bold">@task.Title</h6>
+                                    <p class="text-muted small mb-0">Due: @task.Deadline.ToString("dd MMM yyyy")</p>
+                                </div>
+                                @{
+                                    var daysLeft = (task.Deadline - DateTime.UtcNow).Days;
+                                    var badgeColor = daysLeft < 3 ? "danger" : (daysLeft < 7 ? "warning" : "success");
+                                }
+                                <span class="badge bg-@badgeColor bg-opacity-10 text-@badgeColor">@daysLeft days left</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center p-4">
+                        <i class="bi bi-check2-circle fs-1 text-muted opacity-25"></i>
+                        <p class="text-muted small mt-2">No upcoming deadlines. Great job!</p>
                     </div>
-                    <i class="bi bi-chevron-right small text-muted"></i>
-                </a>
-                <a asp-action="SubmitReport" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 border-0 rounded bg-transparent ims-hover-accent">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="bg-success bg-opacity-10 p-2 rounded-circle"><i class="bi bi-file-earmark-text text-success"></i></div>
-                        <span class="fw-bold">Submit Weekly Progress Report</span>
-                    </div>
-                    <i class="bi bi-chevron-right small text-muted"></i>
-                </a>
-                <a asp-action="Internship" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 border-0 rounded bg-transparent ims-hover-accent">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="bg-secondary bg-opacity-10 p-2 rounded-circle"><i class="bi bi-building text-secondary"></i></div>
-                        <span class="fw-bold">Manage Internship Details</span>
-                    </div>
-                    <i class="bi bi-chevron-right small text-muted"></i>
-                </a>
+                }
             </div>
         </div>
     </div>
 </div>
+
+<div class="ims-card shadow-sm p-4">
+    <h5 class="mb-4 fw-bold">Daily Essentials</h5>
+    <div class="row g-3">
+        <div class="col-6 col-md-3">
+            <a asp-action="CreateDiary" class="ims-btn ims-btn-primary w-100 h-100 py-3 shadow-none border-0 text-center d-flex flex-column gap-2" style="background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);">
+                <i class="bi bi-pencil-square fs-3"></i>
+                <span class="small fw-bold">New Diary</span>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a asp-action="SubmitReport" class="ims-btn w-100 h-100 py-3 border-0 text-center d-flex flex-column gap-2" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                <i class="bi bi-file-earmark-plus fs-3"></i>
+                <span class="small fw-bold">Submit Report</span>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a asp-controller="Chat" asp-action="Index" class="ims-btn w-100 h-100 py-3 border-0 text-center d-flex flex-column gap-2" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                <i class="bi bi-chat-text fs-3"></i>
+                <span class="small fw-bold">Messages</span>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a asp-action="Documents" class="ims-btn w-100 h-100 py-3 border-0 text-center d-flex flex-column gap-2" style="background: rgba(107, 114, 128, 0.1); color: #6b7280;">
+                <i class="bi bi-folder2-open fs-3"></i>
+                <span class="small fw-bold">Documents</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const progressCtx = document.getElementById('progressChart');
+        new Chart(progressCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Remaining'],
+                datasets: [{
+                    data: [@Model.ProgressPercentage, @(100 - Model.ProgressPercentage)],
+                    backgroundColor: ['#3b82f6', 'rgba(59, 130, 246, 0.1)'],
+                    borderWidth: 0,
+                    hoverOffset: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                cutout: '85%',
+                rotation: -90,
+                circumference: 360
+            }
+        });
+    </script>
+}

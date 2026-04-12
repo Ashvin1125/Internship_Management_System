@@ -8,6 +8,7 @@ using System.Security.Claims;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using InternshipManagementSystem.Services;
 
 namespace InternshipManagementSystem.Controllers
 {
@@ -16,13 +17,19 @@ namespace InternshipManagementSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _hostingEnvironment;
+        private readonly DashboardService _dashboardService;
+        private readonly NotificationService _notificationService;
 
         public StudentController(
             ApplicationDbContext context, 
-            IWebHostEnvironment hostingEnvironment)
+            IWebHostEnvironment hostingEnvironment,
+            DashboardService dashboardService,
+            NotificationService notificationService)
         {
             _context = context;
             _hostingEnvironment = hostingEnvironment;
+            _dashboardService = dashboardService;
+            _notificationService = notificationService;
         }
 
         private async Task<int> GetStudentIdAsync()
@@ -38,11 +45,10 @@ namespace InternshipManagementSystem.Controllers
         public async Task<IActionResult> Index()
         {
             var studentId = await GetStudentIdAsync();
-            ViewBag.TotalDiaries = await _context.DailyDiaries.CountAsync(d => d.StudentId == studentId);
-            ViewBag.TasksAssigned = await _context.Tasks.CountAsync(t => t.StudentId == studentId);
-            ViewBag.PendingTasks = await _context.Tasks.CountAsync(t => t.StudentId == studentId && t.Status != "Completed");
-            ViewBag.HasInternship = await _context.InternshipDetails.AnyAsync(i => i.StudentId == studentId);
-            return View();
+            if (studentId == 0) return RedirectToAction("Login", "Account");
+
+            var stats = await _dashboardService.GetStudentStatsAsync(studentId);
+            return View(stats);
         }
 
         // ── Daily Diary ──────────────────────────────────────────────
@@ -80,6 +86,15 @@ namespace InternshipManagementSystem.Controllers
                 {
                     _context.DailyDiaries.Add(model);
                     await _context.SaveChangesAsync();
+                    
+                    // Invalidate Cache for Guide and Student
+                    var guideId = await _context.GuideAssignments
+                        .Where(ga => ga.StudentId == studentId)
+                        .Select(ga => ga.GuideId)
+                        .FirstOrDefaultAsync();
+                    
+                    if (guideId > 0) _dashboardService.InvalidateGuideCache(guideId);
+                    _dashboardService.InvalidateStudentCache(studentId);
 
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Daily diary submitted successfully.", redirectUrl = Url.Action("Diary") });
@@ -107,7 +122,7 @@ namespace InternshipManagementSystem.Controllers
                 .Include(t => t.Guide)
                 .ThenInclude(g => g.User)
                 .Where(t => t.StudentId == studentId)
-                .OrderBy(t => t.Deadline)
+                .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
             return View(tasks);
         }
@@ -127,6 +142,10 @@ namespace InternshipManagementSystem.Controllers
                     task.Status = status;
                     await _context.SaveChangesAsync();
                     
+                    // Invalidate Cache
+                    _dashboardService.InvalidateStudentCache(studentId);
+                    if (task.GuideId > 0) _dashboardService.InvalidateGuideCache(task.GuideId);
+
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Task status updated.", reload = true });
 
@@ -182,6 +201,8 @@ namespace InternshipManagementSystem.Controllers
                     };
                     _context.InternshipDetails.Add(detail);
                     await _context.SaveChangesAsync();
+                    
+                    _dashboardService.InvalidateStudentCache(studentId);
 
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Internship details added.", redirectUrl = Url.Action("Internship") });
@@ -236,6 +257,13 @@ namespace InternshipManagementSystem.Controllers
                 {
                     _context.WeeklyReports.Add(model);
                     await _context.SaveChangesAsync();
+                    
+                    // Invalidate Cache for Guide
+                    var guideId = await _context.GuideAssignments
+                        .Where(ga => ga.StudentId == studentId)
+                        .Select(ga => ga.GuideId)
+                        .FirstOrDefaultAsync();
+                    if (guideId > 0) _dashboardService.InvalidateGuideCache(guideId);
 
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Weekly report submitted.", redirectUrl = Url.Action("WeeklyReports") });
@@ -261,7 +289,7 @@ namespace InternshipManagementSystem.Controllers
             var studentId = await GetStudentIdAsync();
             var docs = await _context.Documents
                 .Where(d => d.StudentId == studentId)
-                .OrderByDescending(d => d.UploadDate)
+                .OrderByDescending(d => d.CreatedAt)
                 .ToListAsync();
             return View(docs);
         }
@@ -310,8 +338,7 @@ namespace InternshipManagementSystem.Controllers
                 {
                     StudentId = studentId,
                     FileName = file.FileName,
-                    FilePath = uniqueFileName,
-                    UploadDate = DateTime.Now
+                    FilePath = uniqueFileName
                 };
 
                 _context.Documents.Add(document);

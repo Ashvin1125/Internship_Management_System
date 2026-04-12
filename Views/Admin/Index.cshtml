@@ -1,15 +1,18 @@
+@using InternshipManagementSystem.Services
+@model AdminStats
 @{
     ViewData["Title"] = "Admin Dashboard";
     var assignments = ViewBag.Assignments as List<InternshipManagementSystem.Models.GuideAssignment>;
 }
 
+<!-- Stats Overview -->
 <div class="row g-4 mb-4">
     <div class="col-md-3">
-        <div class="ims-card h-100 border-start border-primary border-4">
+        <div class="ims-card h-100 border-start border-primary border-4 shadow-sm">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <p class="text-muted small fw-bold text-uppercase mb-1">Total Students</p>
-                    <h2 class="mb-0 fw-bold">@ViewBag.TotalStudents</h2>
+                    <h2 class="mb-0 fw-bold">@Model.TotalStudents</h2>
                 </div>
                 <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
                     <i class="bi bi-people-fill fs-4 text-primary"></i>
@@ -21,11 +24,11 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="ims-card h-100 border-start border-success border-4">
+        <div class="ims-card h-100 border-start border-success border-4 shadow-sm">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <p class="text-muted small fw-bold text-uppercase mb-1">Total Guides</p>
-                    <h2 class="mb-0 fw-bold">@ViewBag.TotalGuides</h2>
+                    <h2 class="mb-0 fw-bold">@Model.TotalGuides</h2>
                 </div>
                 <div class="bg-success bg-opacity-10 p-3 rounded-circle">
                     <i class="bi bi-person-badge-fill fs-4 text-success"></i>
@@ -37,11 +40,11 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="ims-card h-100 border-start border-info border-4">
+        <div class="ims-card h-100 border-start border-info border-4 shadow-sm">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <p class="text-muted small fw-bold text-uppercase mb-1">Assignments</p>
-                    <h2 class="mb-0 fw-bold">@ViewBag.TotalAssignments</h2>
+                    <h2 class="mb-0 fw-bold">@Model.TotalAssignments</h2>
                 </div>
                 <div class="bg-info bg-opacity-10 p-3 rounded-circle">
                     <i class="bi bi-link-45deg fs-4 text-info"></i>
@@ -53,11 +56,11 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="ims-card h-100 border-start border-warning border-4">
+        <div class="ims-card h-100 border-start border-warning border-4 shadow-sm">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <p class="text-muted small fw-bold text-uppercase mb-1">Unassigned</p>
-                    <h2 class="mb-0 fw-bold text-warning">@ViewBag.Unassigned</h2>
+                    <h2 class="mb-0 fw-bold text-warning">@Model.UnassignedStudents</h2>
                 </div>
                 <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
                     <i class="bi bi-person-x-fill fs-4 text-warning"></i>
@@ -70,8 +73,35 @@
     </div>
 </div>
 
-<div class="ims-card p-0 overflow-hidden">
-    <div class="p-4 border-bottom border-light d-flex align-items-center justify-content-between">
+<!-- Charts Section -->
+<div class="row g-4 mb-4">
+    <div class="col-md-8">
+        <div class="ims-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0 fw-bold">Department Distribution</h5>
+                <i class="bi bi-bar-chart text-muted"></i>
+            </div>
+            <div style="height: 300px;">
+                <canvas id="deptChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="ims-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0 fw-bold">Assignment Ratio</h5>
+                <i class="bi bi-pie-chart text-muted"></i>
+            </div>
+            <div style="height: 300px;">
+                <canvas id="assignmentChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Table -->
+<div class="ims-card p-0 overflow-hidden shadow-sm">
+    <div class="p-4 border-bottom border-light d-flex align-items-center justify-content-between bg-white bg-opacity-50">
         <h5 class="mb-0 fw-bold"><i class="bi bi-link-45deg text-primary me-2"></i>Recent Guide Assignments</h5>
         <a asp-action="AssignGuide" class="ims-btn ims-btn-primary py-1 px-3 small">New Assignment</a>
     </div>
@@ -83,12 +113,13 @@
                         <th>Student Details</th>
                         <th>Assigned Guide</th>
                         <th>Department</th>
+                        <th>Joined Date</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (assignments != null && assignments.Any())
                     {
-                        foreach (var a in assignments)
+                        foreach (var a in assignments.OrderByDescending(x => x.CreatedAt).Take(5))
                         {
                             <tr>
                                 <td>
@@ -97,18 +128,21 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-person-check text-success"></i>
+                                        <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-person-check text-success"></i>
+                                        </div>
                                         @a.Guide?.User?.Name
                                     </div>
                                 </td>
                                 <td><span class="ims-status ims-status-success">@a.Guide?.Department</span></td>
+                                <td><small class="text-muted">@a.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</small></td>
                             </tr>
                         }
                     }
                     else
                     {
                         <tr>
-                            <td colspan="3">
+                            <td colspan="4">
                                 <div class="ims-empty-state">
                                     <i class="bi bi-link-45deg"></i>
                                     <h5>No Assignments Found</h5>
@@ -122,3 +156,56 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Department Distribution Bar Chart
+        const deptCtx = document.getElementById('deptChart');
+        new Chart(deptCtx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.DepartmentDistribution.Select(d => d.Key))),
+                datasets: [{
+                    label: 'Students Students',
+                    data: @Html.Raw(Json.Serialize(Model.DepartmentDistribution.Select(d => d.Value))),
+                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                    borderColor: 'rgb(59, 130, 246)',
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, grid: { display: false } },
+                    x: { grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Assignment Ratio Doughnut Chart
+        const assignCtx = document.getElementById('assignmentChart');
+        new Chart(assignCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Assigned', 'Unassigned'],
+                datasets: [{
+                    data: [@Model.TotalAssignments, @Model.UnassignedStudents],
+                    backgroundColor: ['#3b82f6', '#f59e0b'],
+                    hoverOffset: 4,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+                },
+                cutout: '70%'
+            }
+        });
+    </script>
+}
