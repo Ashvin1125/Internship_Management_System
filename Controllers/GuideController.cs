@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
-using InternshipManagementSystem.Services;
 
 namespace InternshipManagementSystem.Controllers
 {
@@ -16,25 +15,13 @@ namespace InternshipManagementSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _hostingEnvironment;
-        private readonly IGuideService _guideService;
-        private readonly IDailyDiaryService _diaryService;
-        private readonly ITaskService _taskService;
-        private readonly IDocumentService _documentService;
 
         public GuideController(
             ApplicationDbContext context, 
-            IWebHostEnvironment hostingEnvironment,
-            IGuideService guideService,
-            IDailyDiaryService diaryService,
-            ITaskService taskService,
-            IDocumentService documentService)
+            IWebHostEnvironment hostingEnvironment)
         {
             _context = context;
             _hostingEnvironment = hostingEnvironment;
-            _guideService = guideService;
-            _diaryService = diaryService;
-            _taskService = taskService;
-            _documentService = documentService;
         }
 
         private async Task<int> GetGuideIdAsync()

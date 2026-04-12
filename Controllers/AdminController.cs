@@ -4,7 +4,6 @@ using InternshipManagementSystem.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using InternshipManagementSystem.Services;
 
 namespace InternshipManagementSystem.Controllers
 {
@@ -12,17 +11,10 @@ namespace InternshipManagementSystem.Controllers
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IStudentService _studentService;
-        private readonly IGuideService _guideService;
 
-        public AdminController(
-            ApplicationDbContext context, 
-            IStudentService studentService, 
-            IGuideService guideService)
+        public AdminController(ApplicationDbContext context)
         {
             _context = context;
-            _studentService = studentService;
-            _guideService = guideService;
         }
 
         public async Task<IActionResult> Index()
@@ -57,20 +49,6 @@ namespace InternshipManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Check if email already exists
-                if (await _context.Users.AnyAsync(u => u.Email == model.Email))
-                {
-                    ModelState.AddModelError("Email", "Email is already registered.");
-                    return View(model);
-                }
-
-                // Check if enrollment already exists
-                if (await _context.Students.AnyAsync(s => s.EnrollmentNumber == model.EnrollmentNumber))
-                {
-                    ModelState.AddModelError("EnrollmentNumber", "Enrollment number is already registered.");
-                    return View(model);
-                }
-
                 try 
                 {
                     var user = new User { Name = model.Name, Email = model.Email, Password = model.Password, Role = "Student" };
@@ -117,13 +95,6 @@ namespace InternshipManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Check if email already exists
-                if (await _context.Users.AnyAsync(u => u.Email == model.Email))
-                {
-                    ModelState.AddModelError("Email", "Email is already registered.");
-                    return View(model);
-                }
-
                 try 
                 {
                     var user = new User { Name = model.Name, Email = model.Email, Password = model.Password, Role = "Guide" };

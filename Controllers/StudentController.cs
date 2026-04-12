@@ -8,7 +8,6 @@ using System.Security.Claims;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using InternshipManagementSystem.Services;
 
 namespace InternshipManagementSystem.Controllers
 {
@@ -17,25 +16,13 @@ namespace InternshipManagementSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _hostingEnvironment;
-        private readonly IStudentService _studentService;
-        private readonly IDailyDiaryService _diaryService;
-        private readonly ITaskService _taskService;
-        private readonly IDocumentService _documentService;
 
         public StudentController(
             ApplicationDbContext context, 
-            IWebHostEnvironment hostingEnvironment,
-            IStudentService studentService,
-            IDailyDiaryService diaryService,
-            ITaskService taskService,
-            IDocumentService documentService)
+            IWebHostEnvironment hostingEnvironment)
         {
             _context = context;
             _hostingEnvironment = hostingEnvironment;
-            _studentService = studentService;
-            _diaryService = diaryService;
-            _taskService = taskService;
-            _documentService = documentService;
         }
 
         private async Task<int> GetStudentIdAsync()

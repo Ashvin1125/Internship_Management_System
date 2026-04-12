@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using InternshipManagementSystem.Data;
 using Microsoft.EntityFrameworkCore;
-using InternshipManagementSystem.Models;
 
 namespace InternshipManagementSystem.ApiControllers
 {
@@ -19,40 +18,18 @@ namespace InternshipManagementSystem.ApiControllers
         [HttpGet]
         public async Task<IActionResult> GetHealth()
         {
-            var healthStatus = new HealthStatus
-            {
-                Status = "Healthy",
-                Timestamp = System.DateTime.UtcNow,
-                Database = "Disconnected"
-            };
-
             try
             {
-                if (await _context.Database.CanConnectAsync())
-                {
-                    healthStatus.Database = "Connected";
-                }
-                else
-                {
-                    healthStatus.Status = "Unhealthy";
-                    return StatusCode(503, ApiResponse<object>.Ok(healthStatus, "Database connection failed."));
-                }
+                var canConnect = await _context.Database.CanConnectAsync();
+                if (canConnect)
+                    return Ok(new { status = "Healthy", database = "Connected", timestamp = DateTime.UtcNow });
+
+                return StatusCode(503, new { status = "Unhealthy", database = "Disconnected", timestamp = DateTime.UtcNow });
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                healthStatus.Status = "Unhealthy";
-                healthStatus.Database = "Error: " + ex.Message;
-                return StatusCode(503, ApiResponse<object>.Ok(healthStatus, "Health check failed."));
+                return StatusCode(503, new { status = "Unhealthy", database = "Error: " + ex.Message, timestamp = DateTime.UtcNow });
             }
-
-            return Ok(ApiResponse<object>.Ok(healthStatus, "System is running."));
-        }
-
-        private class HealthStatus
-        {
-            public string Status { get; set; }
-            public System.DateTime Timestamp { get; set; }
-            public string Database { get; set; }
         }
     }
 }
