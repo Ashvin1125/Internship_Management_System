@@ -12,31 +12,25 @@ namespace InternshipManagementSystem.Controllers
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IStudentService _studentService;
-        private readonly IGuideService _guideService;
+        private readonly DashboardService _dashboardService;
 
-        public AdminController(
-            ApplicationDbContext context, 
-            IStudentService studentService, 
-            IGuideService guideService)
+        public AdminController(ApplicationDbContext context, DashboardService dashboardService)
         {
             _context = context;
-            _studentService = studentService;
-            _guideService = guideService;
+            _dashboardService = dashboardService;
         }
 
         public async Task<IActionResult> Index()
         {
-            ViewBag.TotalStudents = await _context.Students.CountAsync();
-            ViewBag.TotalGuides = await _context.Guides.CountAsync();
-            ViewBag.TotalAssignments = await _context.GuideAssignments.CountAsync();
-            var assignedStudentIds = await _context.GuideAssignments.Select(g => g.StudentId).ToListAsync();
-            ViewBag.Unassigned = await _context.Students.CountAsync(s => !assignedStudentIds.Contains(s.StudentId));
+            var stats = await _dashboardService.GetAdminStatsAsync();
+            
+            // Still need assignments list for the table in Index
             ViewBag.Assignments = await _context.GuideAssignments
                 .Include(ga => ga.Student).ThenInclude(s => s.User)
                 .Include(ga => ga.Guide).ThenInclude(g => g.User)
                 .ToListAsync();
-            return View();
+
+            return View(stats);
         }
 
         public async Task<IActionResult> Students()
@@ -57,20 +51,6 @@ namespace InternshipManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Check if email already exists
-                if (await _context.Users.AnyAsync(u => u.Email == model.Email))
-                {
-                    ModelState.AddModelError("Email", "Email is already registered.");
-                    return View(model);
-                }
-
-                // Check if enrollment already exists
-                if (await _context.Students.AnyAsync(s => s.EnrollmentNumber == model.EnrollmentNumber))
-                {
-                    ModelState.AddModelError("EnrollmentNumber", "Enrollment number is already registered.");
-                    return View(model);
-                }
-
                 try 
                 {
                     var user = new User { Name = model.Name, Email = model.Email, Password = model.Password, Role = "Student" };
@@ -81,6 +61,8 @@ namespace InternshipManagementSystem.Controllers
                     _context.Students.Add(student);
                     await _context.SaveChangesAsync();
                     
+                    _dashboardService.InvalidateAdminCache();
+
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Student registered successfully.", redirectUrl = Url.Action("Students") });
 
@@ -117,13 +99,6 @@ namespace InternshipManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Check if email already exists
-                if (await _context.Users.AnyAsync(u => u.Email == model.Email))
-                {
-                    ModelState.AddModelError("Email", "Email is already registered.");
-                    return View(model);
-                }
-
                 try 
                 {
                     var user = new User { Name = model.Name, Email = model.Email, Password = model.Password, Role = "Guide" };
@@ -134,6 +109,8 @@ namespace InternshipManagementSystem.Controllers
                     _context.Guides.Add(guide);
                     await _context.SaveChangesAsync();
                     
+                    _dashboardService.InvalidateAdminCache();
+
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Guide registered successfully.", redirectUrl = Url.Action("Guides") });
 
@@ -176,6 +153,10 @@ namespace InternshipManagementSystem.Controllers
                     {
                         _context.GuideAssignments.Add(new GuideAssignment { GuideId = guideId, StudentId = studentId });
                         await _context.SaveChangesAsync();
+                        
+                        _dashboardService.InvalidateAdminCache();
+                        _dashboardService.InvalidateGuideCache(guideId);
+
                         TempData["Success"] = "Guide assigned successfully.";
                     }
                     catch (Exception ex)
@@ -212,6 +193,9 @@ namespace InternshipManagementSystem.Controllers
                     if (user != null) _context.Users.Remove(user);
                     _context.Students.Remove(student);
                     await _context.SaveChangesAsync();
+                    
+                    _dashboardService.InvalidateAdminCache();
+
                     TempData["Success"] = "Student deleted successfully.";
                 }
                 catch (Exception ex)
@@ -235,6 +219,9 @@ namespace InternshipManagementSystem.Controllers
                     if (user != null) _context.Users.Remove(user);
                     _context.Guides.Remove(guide);
                     await _context.SaveChangesAsync();
+                    
+                    _dashboardService.InvalidateAdminCache();
+
                     TempData["Success"] = "Guide deleted successfully.";
                 }
                 catch (Exception ex)

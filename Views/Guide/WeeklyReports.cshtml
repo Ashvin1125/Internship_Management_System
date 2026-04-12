@@ -123,12 +123,7 @@
         function viewSummary(week, name, summary) {
             document.getElementById('modalTitle').innerText = `Week ${week} Report - ${name}`;
             document.getElementById('modalSummary').innerText = summary;
-            new bootstrap.Modal(document.getElementById('summaryModal')).show();
+            new bootstrap.Modal(document.getElementById('modalSummary')).show();
         }
-
-        $(document).on('submit', '.ims-ajax-form', function(e) {
-            e.Value = $(document.activeElement).val();
-            // Optional: Implement AJAX refresh logic if site.js doesn't handle global .ims-ajax-form
-        });
     </script>
 }

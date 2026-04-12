@@ -16,25 +16,19 @@ namespace InternshipManagementSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _hostingEnvironment;
-        private readonly IGuideService _guideService;
-        private readonly IDailyDiaryService _diaryService;
-        private readonly ITaskService _taskService;
-        private readonly IDocumentService _documentService;
+        private readonly DashboardService _dashboardService;
+        private readonly NotificationService _notificationService;
 
         public GuideController(
             ApplicationDbContext context, 
             IWebHostEnvironment hostingEnvironment,
-            IGuideService guideService,
-            IDailyDiaryService diaryService,
-            ITaskService taskService,
-            IDocumentService documentService)
+            DashboardService dashboardService,
+            NotificationService notificationService)
         {
             _context = context;
             _hostingEnvironment = hostingEnvironment;
-            _guideService = guideService;
-            _diaryService = diaryService;
-            _taskService = taskService;
-            _documentService = documentService;
+            _dashboardService = dashboardService;
+            _notificationService = notificationService;
         }
 
         private async Task<int> GetGuideIdAsync()
@@ -50,15 +44,10 @@ namespace InternshipManagementSystem.Controllers
         public async Task<IActionResult> Index()
         {
             var guideId = await GetGuideIdAsync();
-            var assignedStudentIds = await _context.GuideAssignments
-                .Where(g => g.GuideId == guideId).Select(g => g.StudentId).ToListAsync();
-            ViewBag.AssignedStudents = assignedStudentIds.Count;
-            ViewBag.PendingDiaries = await _context.DailyDiaries
-                .CountAsync(d => assignedStudentIds.Contains(d.StudentId) && d.Status == "Pending");
-            ViewBag.PendingWeeklyReports = await _context.WeeklyReports
-                .CountAsync(r => assignedStudentIds.Contains(r.StudentId) && r.Status == "Pending");
-            ViewBag.TasksAssigned = await _context.Tasks.CountAsync(t => t.GuideId == guideId);
-            return View();
+            if (guideId == 0) return RedirectToAction("Login", "Account");
+
+            var stats = await _dashboardService.GetGuideStatsAsync(guideId);
+            return View(stats);
         }
 
         public async Task<IActionResult> Students()
@@ -85,7 +74,7 @@ namespace InternshipManagementSystem.Controllers
                 .Include(d => d.Student)
                 .ThenInclude(s => s.User)
                 .Where(d => assignedStudentIds.Contains(d.StudentId))
-                .OrderByDescending(d => d.WorkDate)
+                .OrderByDescending(d => d.CreatedAt)
                 .ToListAsync();
                 
             return View(diaries);
@@ -109,6 +98,7 @@ namespace InternshipManagementSystem.Controllers
                 
             return View(reports);
         }
+
         [HttpGet]
         public async Task<IActionResult> AssignTask()
         {
@@ -129,8 +119,10 @@ namespace InternshipManagementSystem.Controllers
             var guideId = await GetGuideIdAsync();
             if (guideId == 0) return RedirectToAction("Login", "Account");
 
+            var student = await _context.Students.Include(s => s.User).FirstOrDefaultAsync(s => s.StudentId == model.StudentId);
             var isAssigned = await _context.GuideAssignments.AnyAsync(ga => ga.GuideId == guideId && ga.StudentId == model.StudentId);
-            if (!isAssigned)
+            
+            if (student == null || !isAssigned)
             {
                 TempData["Error"] = "Unauthorized: Student is not assigned to you.";
                 return RedirectToAction("Index");
@@ -152,12 +144,19 @@ namespace InternshipManagementSystem.Controllers
                 {
                     _context.Tasks.Add(task);
                     await _context.SaveChangesAsync();
+                    
+                    // Trigger Notification
+                    await _notificationService.CreateNotificationAsync(student.UserId, $"New Task Assigned: {model.Title}", "Task");
+                    
+                    // Invalidate Cache
+                    _dashboardService.InvalidateGuideCache(guideId);
+                    _dashboardService.InvalidateStudentCache(model.StudentId);
 
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = "Task assigned successfully.", redirectUrl = Url.Action("Tasks") });
 
                     TempData["Success"] = "Task assigned successfully.";
-                    return RedirectToAction("Index");
+                    return RedirectToAction("Tasks");
                 }
                 catch (Exception ex)
                 {
@@ -196,6 +195,13 @@ namespace InternshipManagementSystem.Controllers
                     diary.GuideComment = comment;
                     await _context.SaveChangesAsync();
                     
+                    // Trigger Notification
+                    await _notificationService.CreateNotificationAsync(diary.Student.UserId, $"Daily Diary of {diary.WorkDate.ToShortDateString()} has been {diary.Status}.", "Diary");
+                    
+                    // Invalidate Cache
+                    _dashboardService.InvalidateGuideCache(guideId);
+                    _dashboardService.InvalidateStudentCache(diary.StudentId);
+
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = $"Diary {diary.Status.ToLower()} successfully.", reload = true });
 
@@ -229,6 +235,13 @@ namespace InternshipManagementSystem.Controllers
                     report.GuideComment = comment;
                     await _context.SaveChangesAsync();
                     
+                    // Trigger Notification
+                    await _notificationService.CreateNotificationAsync(report.Student.UserId, $"Weekly Report #{report.WeekNumber} has been {report.Status}.", "Report");
+                    
+                    // Invalidate Cache (Reports contribute to progress in future)
+                    _dashboardService.InvalidateGuideCache(guideId);
+                    _dashboardService.InvalidateStudentCache(report.StudentId);
+
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         return Json(new { success = true, message = $"Weekly Report {report.Status.ToLower()} successfully.", reload = true });
 
@@ -251,7 +264,7 @@ namespace InternshipManagementSystem.Controllers
                 .Include(t => t.Student)
                 .ThenInclude(s => s.User)
                 .Where(t => t.GuideId == guideId)
-                .OrderByDescending(t => t.Deadline)
+                .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
             return View(tasks);
         }

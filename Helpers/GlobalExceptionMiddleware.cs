@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
-using InternshipManagementSystem.Models;
 using System;
 
 namespace InternshipManagementSystem.Helpers
@@ -33,19 +32,15 @@ namespace InternshipManagementSystem.Helpers
 
                 if (path != null && path.StartsWith("/api/"))
                 {
-                    // Handle API Exception
                     context.Response.ContentType = "application/json";
                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-                    var response = ApiResponse<object>.Error("An internal server error occurred.", ex.Message);
-                    var json = JsonSerializer.Serialize(response);
-
-                    await context.Response.WriteAsync(json);
+                    var response = new { success = false, message = "An internal server error occurred." };
+                    await context.Response.WriteAsync(JsonSerializer.Serialize(response));
                 }
                 else
                 {
-                    // Handle MVC Exception - let standard MVC error handler take it or redirect depending on environment
-                    throw; 
+                    throw;
                 }
             }
         }

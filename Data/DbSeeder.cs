@@ -12,8 +12,7 @@ namespace InternshipManagementSystem.Data
         public static void Initialize(IServiceProvider serviceProvider)
         {
             using var context = new ApplicationDbContext(
-                serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>(),
-                serviceProvider.GetRequiredService<Microsoft.AspNetCore.Http.IHttpContextAccessor>());
+                serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
 
             // DB already initialized by Program.cs — just seed if empty
 

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InternshipManagementSystem.Models
 {
-    public class InternshipTask : AuditableEntity
+    public class InternshipTask : BaseEntity
     {
         [Key]
         public int TaskId { get; set; }

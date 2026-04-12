@@ -1,20 +1,16 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http;
+using InternshipManagementSystem.Models;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using InternshipManagementSystem.Models;
 
 namespace InternshipManagementSystem.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IHttpContextAccessor httpContextAccessor) : base(options)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public DbSet<User> Users { get; set; }
@@ -27,12 +23,53 @@ namespace InternshipManagementSystem.Data
         public DbSet<Document> Documents { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<GuideAssignment> GuideAssignments { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+
+        public override int SaveChanges()
+        {
+            AddTimestamps();
+            return base.SaveChanges();
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            AddTimestamps();
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void AddTimestamps()
+        {
+            var entities = ChangeTracker.Entries()
+                .Where(x => x.Entity is BaseEntity && (x.State == EntityState.Added));
+
+            foreach (var entity in entities)
+            {
+                if (entity.State == EntityState.Added)
+                {
+                    ((BaseEntity)entity.Entity).CreatedAt = DateTime.UtcNow;
+                }
+            }
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            
-            // To prevent cascading delete loops, configure them here.
+
+            // Configure Message relationship
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Receiver)
+                .WithMany()
+                .HasForeignKey(m => m.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Prevent cascading delete loops for other entities
             modelBuilder.Entity<InternshipTask>()
                 .HasOne(t => t.Guide)
                 .WithMany()
@@ -44,7 +81,7 @@ namespace InternshipManagementSystem.Data
                 .WithMany()
                 .HasForeignKey(t => t.StudentId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             modelBuilder.Entity<Feedback>()
                 .HasOne(f => f.Guide)
                 .WithMany()
@@ -56,39 +93,6 @@ namespace InternshipManagementSystem.Data
                 .WithMany()
                 .HasForeignKey(ga => ga.GuideId)
                 .OnDelete(DeleteBehavior.Restrict);
-        }
-
-        public override int SaveChanges()
-        {
-            AddAuditInfo();
-            return base.SaveChanges();
-        }
-
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-        {
-            AddAuditInfo();
-            return base.SaveChangesAsync(cancellationToken);
-        }
-
-        private void AddAuditInfo()
-        {
-            var currentUser = _httpContextAccessor?.HttpContext?.User?.Identity?.Name ?? "System";
-            var entries = ChangeTracker.Entries<AuditableEntity>();
-
-            foreach (var entry in entries)
-            {
-                if (entry.State == EntityState.Added)
-                {
-                    entry.Entity.CreatedAt = DateTime.Now;
-                    entry.Entity.CreatedBy = currentUser;
-                }
-
-                if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
-                {
-                    entry.Entity.UpdatedAt = DateTime.Now;
-                    entry.Entity.UpdatedBy = currentUser;
-                }
-            }
         }
     }
 }

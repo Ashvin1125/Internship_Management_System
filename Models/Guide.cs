@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InternshipManagementSystem.Models
 {
-    public class Guide : AuditableEntity
+    public class Guide
     {
         [Key]
         public int GuideId { get; set; }

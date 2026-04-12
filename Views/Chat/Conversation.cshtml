@@ -1,0 +1,299 @@
+@model IEnumerable<InternshipManagementSystem.Models.Message>
+@{
+    ViewData["Title"] = "Chat with " + ViewBag.PartnerName;
+    var partnerId = ViewBag.PartnerId;
+    var currentUserId = ViewBag.CurrentUserId;
+    var sid = ViewBag.Sid;
+}
+
+<div class="row justify-content-center h-100 g-0">
+    <div class="col-md-11 col-lg-9 d-flex flex-column chat-viewport">
+        <!-- Premium Chat Header -->
+        <div class="ims-card border-0 shadow-sm mb-3">
+            <div class="p-3 d-flex align-items-center justify-content-between bg-white rounded-top shadow-xs">
+                <div class="d-flex align-items-center gap-3">
+                    <a asp-action="Index" asp-route-sid="@sid" class="btn btn-sm btn-icon-only text-muted rounded-circle hover-bg-light">
+                        <i class="bi bi-arrow-left fs-5"></i>
+                    </a>
+                    <div class="position-relative">
+                        <div class="bg-primary-soft text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 48px; height: 48px;">
+                            @ViewBag.PartnerName.Substring(0, 1).ToUpper()
+                        </div>
+                        <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-2 border-white rounded-circle"></span>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold text-dark">@ViewBag.PartnerName</h6>
+                        <small class="text-success fw-medium">Online</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Messages Area -->
+        <div class="ims-card border-0 shadow-sm flex-grow-1 mb-3 position-relative overflow-hidden d-flex flex-column bg-chat">
+            <div id="chatMessages" class="p-4 overflow-y-auto flex-grow-1 d-flex flex-column gap-3">
+                @foreach (var msg in Model)
+                {
+                    var isMine = msg.SenderId == currentUserId;
+                    <div id="msg-@msg.Id" class="chat-wrapper @(isMine ? "justify-content-end" : "justify-content-start") d-flex">
+                        <div class="chat-bubble @(isMine ? "chat-mine" : "chat-theirs") @(msg.IsDeletedForEveryone ? "is-deleted" : "")">
+                            <div class="bubble-content p-3 position-relative">
+                                <span class="message-text">@(msg.IsDeletedForEveryone ? "This message was deleted" : msg.Content)</span>
+                                
+                                <div class="bubble-meta d-flex align-items-center justify-content-end gap-1 mt-1">
+                                    <span class="text-xs">@msg.CreatedAt.ToString("HH:mm")</span>
+                                    @if (isMine)
+                                    {
+                                        <i class="bi bi-check2-all @(msg.IsRead ? "text-primary" : "text-muted")" style="font-size: 0.75rem;"></i>
+                                    }
+                                </div>
+
+                                <!-- Message Menu -->
+                                @if (!msg.IsDeletedForEveryone)
+                                {
+                                    <div class="message-actions position-absolute">
+                                        <div class="dropdown">
+                                            <button class="btn btn-link btn-sm text-muted p-0" data-bs-toggle="dropdown">
+                                                <i class="bi bi-three-dots-vertical"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 py-1">
+                                                <li><a class="dropdown-item text-danger small py-1" href="javascript:void(0)" onclick="deleteMessage(@msg.Id, false)"><i class="bi bi-trash me-2"></i> Delete for Me</a></li>
+                                                @if (isMine)
+                                                {
+                                                    <li><a class="dropdown-item text-danger small py-1 fw-bold" href="javascript:void(0)" onclick="deleteMessage(@msg.Id, true)"><i class="bi bi-trash-fill me-2"></i> Delete for Everyone</a></li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Chat Input Area -->
+        <div class="ims-card border-0 shadow-sm p-3 mb-4">
+            <form id="chatForm" class="d-flex gap-2 align-items-center">
+                <div class="flex-grow-1 position-relative">
+                    <input type="text" id="messageInput" class="form-control border-0 bg-light py-2 px-3" 
+                           placeholder="Type a message..." autocomplete="off" style="border-radius: 20px;" />
+                </div>
+                <button type="submit" id="sendBtn" class="btn btn-primary d-flex align-items-center justify-content-center shadow-sm" 
+                        style="width: 42px; height: 42px; border-radius: 50%;">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chat-viewport {
+        height: calc(100vh - 110px); /* Adjusted for layout header */
+        max-height: calc(100vh - 110px);
+        overflow: hidden;
+    }
+
+    .bg-chat {
+        background-color: #f8f9fa;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        overflow: hidden; /* Prevent background bleeding */
+    }
+
+    #chatMessages {
+        scroll-behavior: smooth;
+        overflow-y: scroll !important; /* Force visibility of scroll track if needed */
+        scrollbar-width: thin;
+    }
+
+    .chat-bubble {
+        max-width: 80%;
+        position: relative;
+        transition: all 0.2s ease;
+    }
+
+    .bubble-content {
+        border-radius: 18px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        min-width: 80px;
+    }
+
+    .chat-mine .bubble-content {
+        background: white;
+        color: #333;
+        border-bottom-right-radius: 4px;
+        border: 1px solid #e0e0e0;
+    }
+
+    .chat-theirs .bubble-content {
+        background: var(--ims-primary);
+        color: white;
+        border-bottom-left-radius: 4px;
+    }
+
+    .chat-mine .message-actions {
+        right: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-right: 8px;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .chat-theirs .message-actions {
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: 8px;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .chat-bubble:hover .message-actions {
+        opacity: 1;
+    }
+
+    .is-deleted .message-text {
+        font-style: italic;
+        opacity: 0.6;
+    }
+
+    .text-xs {
+        font-size: 0.65rem;
+    }
+
+    .bg-primary-soft {
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+
+    .hover-bg-light:hover {
+        background-color: #f1f3f5;
+    }
+
+    #chatMessages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    #chatMessages::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const partnerId = parseInt("@partnerId");
+        const currentUserId = parseInt("@currentUserId");
+        const sid = "@sid";
+
+        function scrollToBottom() {
+            const chat = document.getElementById('chatMessages');
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // Handle receiving messages via SignalR
+        window.onReceiveMessage = function (senderId, receiverId, message, time, messageId) {
+            if (senderId == partnerId && receiverId == currentUserId) {
+                appendMessage(message, time, false, messageId);
+                setTimeout(scrollToBottom, 50); // Small delay to ensure DOM update
+                $.post(`/${sid}/Chat/MarkRead?partnerId=${partnerId}`);
+            } 
+            else if (senderId == currentUserId && receiverId == partnerId) {
+                appendMessage(message, time, true, messageId);
+                setTimeout(scrollToBottom, 50);
+            }
+        };
+
+        // Handle message deletion via SignalR
+        connection.on("MessageDeleted", function (messageId, forEveryone) {
+            const msgEl = document.getElementById(`msg-${messageId}`);
+            if (!msgEl) return;
+
+            if (forEveryone) {
+                const bubble = msgEl.querySelector('.chat-bubble');
+                bubble.classList.add('is-deleted');
+                bubble.querySelector('.message-text').innerText = "This message was deleted";
+                bubble.querySelector('.message-actions').remove();
+            } else {
+                msgEl.remove();
+            }
+        });
+
+        function appendMessage(content, time, isMine, messageId) {
+            const html = `
+                <div id="msg-${messageId}" class="chat-wrapper ${isMine ? 'justify-content-end' : 'justify-content-start'} d-flex">
+                    <div class="chat-bubble ${isMine ? 'chat-mine' : 'chat-theirs'}">
+                        <div class="bubble-content p-3 position-relative">
+                            <span class="message-text">${content}</span>
+                            <div class="bubble-meta d-flex align-items-center justify-content-end gap-1 mt-1">
+                                <span class="text-xs">${time}</span>
+                                ${isMine ? '<i class="bi bi-check2 ms-1 text-muted" style="font-size: 0.75rem;"></i>' : ''}
+                            </div>
+                            <div class="message-actions position-absolute">
+                                <div class="dropdown">
+                                    <button class="btn btn-link btn-sm text-muted p-0" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 py-1">
+                                        <li><a class="dropdown-item text-danger small py-1" href="javascript:void(0)" onclick="deleteMessage(${messageId}, false)"><i class="bi bi-trash me-2"></i> Delete for Me</a></li>
+                                        ${isMine ? `<li><a class="dropdown-item text-danger small py-1 fw-bold" href="javascript:void(0)" onclick="deleteMessage(${messageId}, true)"><i class="bi bi-trash-fill me-2"></i> Delete for Everyone</a></li>` : ''}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('#chatMessages').append(html);
+        }
+
+        window.deleteMessage = function(messageId, forEveryone) {
+            const title = forEveryone ? 'Delete for everyone?' : 'Delete for me?';
+            const text = forEveryone ? 'This message will be removed for both participants.' : 'This message will be hidden from your chat view.';
+
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    connection.invoke("DeleteMessage", messageId, forEveryone)
+                        .catch(err => console.error(err));
+                }
+            });
+        };
+
+        $('#chatForm').submit(function (e) {
+            e.preventDefault();
+            const input = $('#messageInput');
+            const message = input.val().trim();
+            if (!message) return;
+
+            input.prop('disabled', true);
+            $('#sendBtn').prop('disabled', true);
+
+            connection.invoke("SendMessage", partnerId, message, sid)
+                .then(() => {
+                    input.val('').prop('disabled', false).focus();
+                    $('#sendBtn').prop('disabled', false);
+                })
+                .catch(err => {
+                    console.error(err);
+                    input.prop('disabled', false);
+                    $('#sendBtn').prop('disabled', false);
+                    Swal.fire('Error', 'Failed to send message', 'error');
+                });
+        });
+
+        $(document).ready(function() {
+            scrollToBottom();
+            $('#messageInput').focus();
+        });
+    </script>
+}
